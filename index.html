@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubX - Subtitle Editor</title>
+    <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
+    <meta name="theme-color" content="#0ea5e9" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> 
+    
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <style>
+        /* Minimal global styles - most styling is handled by Tailwind */
+        body { 
+            font-family: 'Inter', 'Vazirmatn', sans-serif; 
+            transition: background-color 0.3s ease, color 0.3s ease; 
+            margin: 0; /* Ensure no default margin */
+            -webkit-font-smoothing: antialiased; /* Improve font rendering */
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Specific font classes if needed outside Tailwind's direct application */
+        .font-vazir { font-family: 'Vazirmatn', sans-serif; }
+        .font-arial { font-family: Arial, sans-serif; }
+        .font-courier { font-family: 'Courier New', Courier, monospace; }
+
+        /* Ensure tooltips with lists are styled correctly if not using Tailwind for everything inside */
+        .error-tooltip ul { padding-left: 1.25rem; list-style-type: disc; }
+    </style>
+    <script>
+      // Tailwind CSS configuration
+      tailwind.config = {
+        darkMode: 'class', // or 'media'
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'Vazirmatn', 'sans-serif'],
+              vazir: ['Vazirmatn', 'sans-serif'],
+              arial: ['Arial', 'Helvetica', 'sans-serif'],
+              courier: ['Courier New', 'Courier', 'monospace'],
+            },
+            keyframes: {
+              flash: {
+                '0%, 100%': { backgroundColor: 'transparent' },
+                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with more opacity */
+                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.6)' }, 
+              }
+            },
+            animation: {
+              flash: 'flash 1.2s ease-in-out',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This app is a single-page application.
+      The service worker (`service-worker.js`) handles caching and offline functionality.
+      Ensure `manifest.json` and icons are correctly placed in the public folder.
+      
+      Example content for offline.html (create this file in your public/ folder):
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SubX Offline</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; color: #333; text-align: center; padding: 20px; }
+          h1 { font-size: 1.8em; margin-bottom: 0.5em; color: #1e293b; }
+          p { font-size: 1.1em; margin-bottom: 1em; line-height: 1.6; }
+          .container { max-width: 600px; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+          a { color: #0ea5e9; text-decoration: none; font-weight: bold; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>SubX is Offline</h1>
+          <p>It seems you're not connected to the internet or the server is unreachable.</p>
+          <p>The app might have limited functionality or may not load new data until you reconnect.</p>
+          <p><a href="/">Try to Reload</a></p>
+        </div>
+      </body>
+      </html>
+    -->
+</body>
+</html>
