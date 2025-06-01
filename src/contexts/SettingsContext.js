@@ -1,24 +1,26 @@
 // src/contexts/SettingsContext.js
 import React from 'react';
 
+// Default configurations for error checking and appearance
 export const DEFAULT_ERROR_CONFIG = { 
     MIN_DURATION_MS: 1000, 
     MAX_DURATION_MS: 7000, 
     MAX_LINES: 2, 
     MAX_CHARS_PER_LINE: 42, 
-    OVERLAP_FIX_GAP_MS: 1 
+    OVERLAP_FIX_GAP_MS: 1 // Gap in ms to leave when fixing overlaps
 };
 export const DEFAULT_APPEARANCE_CONFIG = { 
-    tableFont: 'font-sans', 
+    tableFont: 'font-sans', // Tailwind class for default sans-serif font
     autosave: true, 
     showCharCountPerLine: true, 
     showTotalLineCount: true, 
-    spellCheck: true 
+    spellCheck: true // Enable browser's native spell check by default
 }; 
 
 const SettingsContext = React.createContext();
 
 export function SettingsProvider({ children }) {
+    // Load error configuration from localStorage or use defaults
     const [errorConfig, setErrorConfig] = React.useState(() => {
         const saved = localStorage.getItem('subx-error-config');
         try {
@@ -28,6 +30,8 @@ export function SettingsProvider({ children }) {
             return DEFAULT_ERROR_CONFIG;
         }
     });
+
+    // Load appearance configuration from localStorage or use defaults
     const [appearanceConfig, setAppearanceConfig] = React.useState(() => {
         const saved = localStorage.getItem('subx-appearance-config');
         try {
@@ -38,30 +42,37 @@ export function SettingsProvider({ children }) {
         }
     });
 
+    // Function to update error configuration
     const updateErrorConfig = (newConfig) => {
         const updated = { ...errorConfig, ...newConfig };
         setErrorConfig(updated);
         localStorage.setItem('subx-error-config', JSON.stringify(updated));
     };
+
+    // Function to reset error configuration to defaults
     const resetErrorConfigToDefaults = () => {
         setErrorConfig(DEFAULT_ERROR_CONFIG);
         localStorage.setItem('subx-error-config', JSON.stringify(DEFAULT_ERROR_CONFIG));
     };
+
+    // Function to update appearance configuration
     const updateAppearanceConfig = (newConfig) => {
         const updated = { ...appearanceConfig, ...newConfig };
         setAppearanceConfig(updated);
         localStorage.setItem('subx-appearance-config', JSON.stringify(updated));
     };
+
+    // Function to reset appearance configuration to defaults
     const resetAppearanceConfigToDefaults = () => {
         setAppearanceConfig(DEFAULT_APPEARANCE_CONFIG);
         localStorage.setItem('subx-appearance-config', JSON.stringify(DEFAULT_APPEARANCE_CONFIG));
     };
 
-    // Ensure all default keys exist in loaded config on mount
+    // Effect to ensure all default keys exist in the loaded config on initial mount
     React.useEffect(() => {
         let needsErrorUpdate = false;
         const currentErrorCfg = JSON.parse(localStorage.getItem('subx-error-config') || '{}');
-        const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg};
+        const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg}; 
         Object.keys(DEFAULT_ERROR_CONFIG).forEach(key => {
             if (newErrorCfg[key] === undefined || typeof newErrorCfg[key] !== typeof DEFAULT_ERROR_CONFIG[key] ) {
                 newErrorCfg[key] = DEFAULT_ERROR_CONFIG[key];
@@ -87,7 +98,7 @@ export function SettingsProvider({ children }) {
             localStorage.setItem('subx-appearance-config', JSON.stringify(newAppearanceCfg));
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); 
+    }, []); // Empty dependency array ensures this runs only once on mount
 
     return (
         <SettingsContext.Provider value={{ 
@@ -98,6 +109,7 @@ export function SettingsProvider({ children }) {
         </SettingsContext.Provider>
     );
 }
+
 export function useSettings() { 
     const context = React.useContext(SettingsContext);
     if (context === undefined) {
