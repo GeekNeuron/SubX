@@ -1,6 +1,7 @@
 // src/components/WaveformDisplay.js
 import React from 'react';
 
+// Displays a conceptual waveform for the active subtitle
 function WaveformDisplay({ subtitle, isActive }) {
     // If not active or no subtitle data, don't render
     if (!isActive || !subtitle) {
