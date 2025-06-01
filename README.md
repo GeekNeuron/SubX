@@ -1,131 +1,157 @@
 # 🚀 SubX - Galactic Subtitle Editor 🌠
 
-Welcome, intrepid time-traveler and linguist, to SubX! Your all-in-one, offline-first, browser-based command center for conquering the cosmos of SRT subtitle files. Prepare to bend time, translate across galaxies, and ensure every word aligns perfectly with the visual wonders of your moving pictures.
+Welcome, intrepid time-traveler and linguist, to SubX! Your all-in-one, offline-first, browser-based command center for conquering the cosmos of SRT subtitle files. Prepare to bend time and ensure every word aligns perfectly with the visual wonders of your moving pictures.
 
-## ✨ Features from Across the Universe
+## 📂 Project Structure
 
-SubX is packed with stellar features to make your subtitle editing journey smooth and efficient:
+```
+SubX/
+├── public/
+│   ├── icons/
+│   │   ├── icon-72x72.png
+│   │   ├── icon-96x96.png
+│   │   ├── icon-128x128.png
+│   │   ├── icon-144x144.png
+│   │   ├── icon-152x152.png
+│   │   ├── icon-192x192.png
+│   │   ├── icon-384x384.png
+│   │   └── icon-512x512.png
+│   ├── index.html
+│   ├── manifest.json
+│   └── offline.html
+├── src/
+│   ├── App.js
+│   ├── components/
+│   │   ├── FileUploader.js
+│   │   ├── Footer.js
+│   │   ├── Header.js
+│   │   ├── HelpModal.js
+│   │   ├── LoadingOverlay.js
+│   │   ├── SettingsModal.js
+│   │   ├── SubtitleEditor.js
+│   │   ├── SubtitleItem.js
+│   │   ├── TwoPointSyncModal.js
+│   │   ├── VisualTimeline.js
+│   │   └── WaveformDisplay.js
+│   ├── contexts/
+│   │   ├── SettingsContext.js
+│   │   └── ThemeContext.js
+│   ├── hooks/
+│   │   └── useUndoRedo.js
+│   ├── locales/                 (This folder is now effectively unused as text is hardcoded in English)
+│   │   └── en.js                (Contains English translations - will be simplified/removed)
+│   ├── utils/
+│   │   └── srtUtils.js
+│   ├── index.js
+│   └── service-worker.js
+├── .gitignore
+├── package.json
+└── README.md
+```
 
-* **Universal SRT Compatibility:**
-    * **File Upload:** Drag & drop your `.srt` scrolls or use the `Ctrl+O` portal to summon them.
-    * **Multi-Encoding Support:** Deciphers various ancient encodings (UTF-8, Windows-1256, Windows-1252, etc.) so no dialect is lost in translation.
-    * **SRT Parsing & Display:** Intelligently parses and displays subtitles in a clear, tabular format: Line No., Start Time, End Time, Text.
-* **Precision Editing Tools:**
-    * **Direct In-Table Editing:** Modify start/end times and text directly within the data grid.
-    * **Add & Delete:** Effortlessly create new subtitle entries or banish unwanted ones (single or `Ctrl+D` for active row).
-    * **Save As .srt:** Export your masterpiece back into the universal SRT format (`Ctrl+S`).
-* **Advanced Chronomancy (Time Manipulation):**
-    * **Global Shift:** Shift all subtitles forward or backward in time with millisecond precision.
-    * **Selected Shift:** Apply time shifts only to your chosen subtitle entries.
-    * **Set Duration:** Directly define the display duration for selected subtitles.
-    * **Two-Point Synchronization:** A powerful chronometer to linearly adjust subtitle timings based on two reference points from your source video and current SRT. Perfect for correcting temporal drifts or scaling issues across entire timelines.
-* **Textual Alchemy (Find & Replace):**
-    * **Global Search & Replace:** Find specific textual fragments across all subtitles and replace them individually or all at once.
-    * **Occurrence Counter:** Know exactly how many instances of a phrase exist in your scroll.
-    * **Search Term Highlighting:** Visually pinpoint your search terms within the subtitle text.
-* **Structural Integrity (Split & Merge):**
-    * **Split Subtitle:** Divide a lengthy subtitle into two more manageable entries (`Ctrl+Shift+S` on active row).
-    * **Merge with Next:** Combine a subtitle with the one immediately following it (`Ctrl+Shift+M` on active row).
-* **Quality Assurance (Error Checking & Correction):**
-    * **Automated Error Detection:** Identifies common temporal and textual anomalies:
-        * Overlapping subtitles.
-        * Durations that are too short or too long.
-        * Excessive lines per subtitle.
-        * Excessive characters per line.
-        * Invalid time ordering (start time after end time).
-    * **Visual Error Feedback:** Problematic subtitles are clearly marked, with detailed error descriptions available on hover.
-    * **Automated Fixes:** Attempt to auto-correct overlaps and duration issues.
-    * **Customizable Thresholds:** Fine-tune error detection parameters (min/max duration, max lines/chars) in the Settings Citadel.
-* **User Interface & Experience (The Bridge Controls):**
-    * **Dual-Mode Interface:** Switch between Light and Dark themes for optimal viewing in any cosmic condition.
-    * **Multilingual Console:** Interface translated into numerous galactic tongues including English, Persian (فارسی), Spanish, French, German, Italian, Portuguese, Japanese (日本語), and Chinese (简体中文).
-    * **System Notifications:** Clear feedback messages for all operations.
-    * **Temporal Flux Reversal (Undo/Redo):** `Ctrl+Z` to undo, `Ctrl+Y` to redo. Most actions are reversible.
-    * **Autosave Protocol:** Automatically saves your progress to local browser storage (toggleable in Settings).
-    * **Unsaved Changes Indicator:** A visual cue (`*`) on the Save button and document title reminds you of unsaved work.
-    * **Keyboard Navigation Matrix:**
-        * Navigate table rows with `ArrowUp`/`ArrowDown`.
-        * Toggle edit mode for the active row with `Enter`.
-        * Extensive `Ctrl`-based shortcuts for most actions.
-    * **Search & Jump:**
-        * Live filter subtitles as you type in the search bar.
-        * Quickly clear search terms.
-        * Jump to a specific line number, which gets selected and briefly highlighted.
-    * **Loading Indicators:** Visual feedback during file processing and bulk operations.
-    * **Editor Display Customization:**
-        * Toggle visibility of character count per line.
-        * Toggle visibility of total line count in the editor.
-        * Enable/disable native browser spell-checking within the text editor.
-    * **Visual Timeline (Beta):** A graphical overview of subtitle timings, allowing quick jumps to specific entries.
-* **Progressive Web App (PWA) Capabilities:**
-    * **Offline First:** Designed to function even without a stable hyperspace connection once initially loaded.
-    * **Installable:** On supported browsers, install SubX as a standalone application for a dedicated experience.
-    * **Caching & Offline Page:** Utilizes a Service Worker for intelligent caching of app assets and provides a fallback `offline.html` page.
+## ✨ Stellar Features
+
+SubX is packed with features to make your subtitle editing journey smooth and efficient:
+
+### 1. Core SRT Editing:
+* **File Upload:** Drag & drop your `.srt` scrolls or use `Ctrl+O` to summon them.
+* **Multi-Encoding Support:** Deciphers various encodings (UTF-8, Windows-1256, Windows-1252, ISO-8859-1, etc.) during file load.
+* **Parsing & Display:** Intelligently parses and displays subtitles in a clear, tabular format: Line No., Start Time, End Time, Text.
+* **Direct In-Table Editing:** Modify start/end times and text directly.
+* **Add & Delete:** Effortlessly create new subtitle entries or banish unwanted ones.
+* **Save As .srt:** Export your masterpiece back into the universal SRT format (`Ctrl+S`), always encoded as UTF-8.
+
+### 2. Advanced Editing Tools:
+* **Find & Replace:** Globally search and replace text, with an occurrence counter. Searched text is highlighted. Includes a "Clear Search" button.
+* **Time Shifting:**
+    * Shift all subtitles at once.
+    * Shift only selected subtitles.
+* **Duration Setting:** Directly set the display duration for selected subtitles.
+* **Split & Merge:** Divide a subtitle or merge it with the next one. (Keyboard shortcuts: `Ctrl+Shift+S` for split, `Ctrl+Shift+M` for merge on active row).
+* **Reorder:** Drag & drop subtitles to change their sequence.
+* **Two-Point Synchronization:** A powerful chronometer to linearly adjust subtitle timings based on two reference points from your video and SRT file. Perfect for correcting temporal drifts or scaling issues across entire timelines.
+
+### 3. Quality Assurance:
+* **Automated Error Detection:** Identifies overlaps, too short/long durations, excessive lines/characters per line, and invalid time ordering.
+* **Visual Error Feedback:** Problematic subtitles are clearly marked, with detailed error descriptions available on hover.
+* **Automated Fixes (Limited):** Attempt to auto-correct overlaps and duration issues.
+* **Customizable Thresholds:** Fine-tune error detection parameters (Min/Max Duration, Max Lines, Max Chars per Line) in the Settings Citadel.
+
+### 4. User Interface & Experience:
+* **Dual-Mode Interface:** Switch between Light and Dark themes.
+* **System Notifications:** Clear feedback messages for all operations.
+* **Undo/Redo:** `Ctrl+Z` to undo, `Ctrl+Y` to redo most actions.
+* **Autosave:** Periodically saves progress to browser local storage (toggleable in Settings).
+* **Unsaved Changes Indicator:** An asterisk (`*`) on the Save button and document title indicates unsaved work.
+* **Keyboard Navigation Matrix:**
+    * Navigate table rows with `ArrowUp`/`ArrowDown`.
+    * Toggle edit mode with `Enter` on an active row.
+    * Extensive `Ctrl`-based shortcuts for most actions (see Help section in the app).
+* **Search & Jump:**
+    * Live filter subtitles as you type in the search bar. Clear search with an 'x' button.
+    * Jump to a specific line number, which gets selected and briefly highlighted.
+* **Loading Indicators:** Visual feedback during file processing and bulk operations.
+* **Editor Display Customization:** Toggle visibility of character/line counts, and enable/disable browser spell-checking.
+* **Visual Timeline:** A graphical overview of subtitle timings. Click a block to jump to and select that subtitle.
+* **Conceptual Waveform Display:** A simple visual representation of the active subtitle's sound (conceptual, not actual audio analysis).
+
+### 5. Progressive Web App (PWA) Basics:
+* **Offline First:** Designed to work offline once loaded.
+* **Installable:** On supported browsers, install SubX as a standalone application.
+* **Caching & Offline Page:** Uses a Service Worker for asset caching and provides a fallback `offline.html`.
 
 ## 🌌 Setting Up Your Local SubX Instance (For Developers)
 
-While SubX is designed for direct browser use, if you wish to tinker with its core mechanics:
-
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/your-username/subx.git](https://github.com/your-username/subx.git)
+    git clone [https://github.com/your-username/subx.git](https://github.com/your-username/subx.git) # Replace with your repository URL
     cd subx
     ```
-2.  **Install Dependencies:**
+2.  **Install Dependencies (if using a build system like Create React App):**
     ```bash
     npm install 
     # or
     yarn install
     ```
-3.  **Launch the Development Server:**
+3.  **Launch (if using a build system):**
     ```bash
     npm start
     # or
     yarn start
     ```
-    This will typically open SubX in your default browser at `http://localhost:3000`.
+    Otherwise, you can try opening `public/index.html` directly in a browser that supports ES modules, but a local server is recommended for PWA features.
 
 ## 📜 How to Use SubX - A Quick Start Guide
 
-1.  **Launch:** Open `index.html` in a modern web browser or deploy the `build` folder to a web server.
+1.  **Launch:** Open `index.html` in a modern web browser.
 2.  **Load Subtitles:**
-    * Drag and drop your `.srt` file onto the designated area.
-    * Or, click the upload area (or press `Ctrl+O`) to select a file.
-    * **Important:** If your file uses a non-UTF-8 encoding, select the correct encoding from the dropdown menu *before* selecting the file.
-3.  **Edit:**
-    * Click on any timecode or text cell in the table to edit it directly.
-    * Use the action buttons (Edit, Delete, Split, Merge) for each row.
-    * Utilize the tools in the "Find & Replace", "Shift Times", and "Fix Common Errors" sections for bulk operations.
-    * Leverage keyboard shortcuts (see Help section in the app for a full list).
-4.  **Save:**
-    * Click "Save Subtitles (.srt)" (or `Ctrl+S`) to download your changes.
-    * If autosave is enabled, your work is periodically saved to your browser's local storage. An asterisk (*) indicates unsaved changes.
-5.  **Explore Settings:** Click the gear icon to customize error checking, appearance, and editor behavior.
-6.  **Consult Help:** Click the question mark icon for detailed guidance on all features.
+    * Drag and drop your `.srt` file or click the upload area (`Ctrl+O`).
+    * Select the file encoding from the dropdown if it's not UTF-8 *before* selecting the file.
+3.  **Edit:** Use in-table editing, action buttons, bulk tools, and keyboard shortcuts.
+4.  **Save:** Click "Save Subtitles (.srt)" (`Ctrl+S`). An asterisk (`*`) indicates unsaved changes.
+5.  **Explore Settings & Help:** Use the gear and question mark icons for customization and guidance.
 
 ## 🛠️ Built With Star-Stuff
 
-* **React:** For building a dynamic and responsive user interface.
-* **Tailwind CSS:** For rapid, utility-first styling.
-* **Vazirmatn Font:** For beautiful Persian script rendering.
-* **Pure JavaScript & HTML5 APIs:** For core functionalities like File API, TextDecoder, and PWA features.
+* **React**
+* **Tailwind CSS**
+* **JavaScript & HTML5 APIs**
 
-## 🌠 Future Expeditions (Potential Features)
+## 🌠 Future Expeditions
 
-* Advanced error correction tools (e.g., auto-splitting long lines).
-* Enhanced PWA features (custom offline page, update notifications).
-* More UI/UX refinements and animations.
+* Advanced error correction (e.g., auto-splitting long lines).
+* More sophisticated PWA features (fully custom offline page, update notifications).
 * Video player integration for direct synchronization.
-* Waveform display for audio-based timing.
+* Actual audio waveform display.
 * Support for more subtitle formats (VTT, SSA/ASS).
 
 ## 👽 Contributing
 
-Contributions from fellow space-farers are welcome! Please fork the repository and submit a pull request with your enhancements.
+Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE.md) (You'll need to create this file).
+MIT License
 
 ---
 
