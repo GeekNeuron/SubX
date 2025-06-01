@@ -6,21 +6,22 @@
     <title>SubX - Subtitle Editor</title>
     <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
     <meta name="theme-color" content="#0ea5e9" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> 
+    <link rel="manifest" href="manifest.json" /> 
     
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png">
+    <link rel="icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /*
           All custom CSS rules have been removed from here to prevent parsing errors 
           in some sandboxed build environments that might misinterpret CSS within JS comments.
-          Rely primarily on Tailwind CSS for styling.
-          For specific overrides in a real project, use a separate, properly linked CSS file.
+          Rely entirely on Tailwind CSS for styling.
+          If specific overrides are absolutely necessary for your final deployment, 
+          they should be in a separate, properly linked CSS file not managed by this environment.
         */
         body { 
-            font-family: 'Inter', sans-serif; /* Defaulting to Inter */
+            font-family: 'Inter', sans-serif; /* Defaulting to Inter for English project */
             transition: background-color 0.3s ease, color 0.3s ease; 
             margin: 0;
             -webkit-font-smoothing: antialiased;
@@ -38,7 +39,7 @@
             keyframes: {
               flash: {
                 '0%, 100%': { backgroundColor: 'transparent' },
-                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with more opacity */
+                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with opacity */
                 '50%': { backgroundColor: 'rgba(250, 204, 21, 0.6)' }, 
               }
             },
@@ -53,5 +54,5 @@
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-</body>
+    </body>
 </html>
