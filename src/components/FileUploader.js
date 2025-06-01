@@ -19,23 +19,22 @@ function FileUploader({ onFileLoad, setNotification, clearSubtitles, fileInputRe
         reader.onload = (e) => {
             try {
                 const buffer = e.target.result;
-                // Use TextDecoder for robust encoding support
-                const decoder = new TextDecoder(selectedEncoding, { fatal: true }); // fatal:true will throw error for invalid sequences
+                const decoder = new TextDecoder(selectedEncoding, { fatal: true }); 
                 const content = decoder.decode(buffer);
                 
-                onFileLoad(content, file.name); // Pass decoded content to parent
+                onFileLoad(content, file.name); 
                 setNotification({ message: "Subtitles loaded successfully.", type: 'success', isLoading: false });
             } catch (error) {
                 console.error("Error decoding/processing SRT:", error);
                 setNotification({ message: `Error decoding file with ${selectedEncoding}. Invalid SRT format or encoding mismatch.`, type: 'error', isLoading: false });
-                clearSubtitles(); // Clear any partially loaded or erroneous data
+                clearSubtitles(); 
             }
         };
         reader.onerror = () => {
             setNotification({ message: "Error: Could not read file.", type: 'error', isLoading: false });
             clearSubtitles();
         };
-        reader.readAsArrayBuffer(file); // Read as ArrayBuffer for TextDecoder
+        reader.readAsArrayBuffer(file); 
         setFileName(file.name);
     };
 
@@ -49,37 +48,18 @@ function FileUploader({ onFileLoad, setNotification, clearSubtitles, fileInputRe
         }
     };
 
-    const handleDragOver = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-    };
-
-    const handleDragEnter = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        event.currentTarget.classList.add('border-sky-500', 'bg-sky-50', 'dark:bg-slate-700');
-        event.currentTarget.classList.remove('border-slate-300', 'dark:border-slate-600');
-    };
-
-    const handleDragLeave = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-            event.currentTarget.classList.remove('border-sky-500', 'bg-sky-50', 'dark:bg-slate-700');
-            event.currentTarget.classList.add('border-slate-300', 'dark:border-slate-600');
-        }
-    };
+    const handleDragOver = (event) => { event.preventDefault(); event.stopPropagation(); };
+    const handleDragEnter = (event) => { event.preventDefault(); event.stopPropagation(); event.currentTarget.classList.add('border-sky-500', 'bg-sky-50', 'dark:bg-slate-700'); event.currentTarget.classList.remove('border-slate-300', 'dark:border-slate-600'); };
+    const handleDragLeave = (event) => { event.preventDefault(); event.stopPropagation(); if (!event.currentTarget.contains(event.relatedTarget)) { event.currentTarget.classList.remove('border-sky-500', 'bg-sky-50', 'dark:bg-slate-700'); event.currentTarget.classList.add('border-slate-300', 'dark:border-slate-600'); } };
     
-    // Common encodings
     const encodings = [
         { value: 'UTF-8', label: 'Autodetect (UTF-8 default)' },
-        { value: 'windows-1256', label: 'Windows-1256 (Arabic)' },
+        { value: 'windows-1256', label: 'Windows-1256 (Arabic/Persian)' },
         { value: 'windows-1252', label: 'Windows-1252 (Western European)' },
         { value: 'windows-1250', label: 'Windows-1250 (Central European)' },
         { value: 'windows-1251', label: 'Windows-1251 (Cyrillic)' },
         { value: 'ISO-8859-1', label: 'ISO-8859-1 (Latin-1)' },
         { value: 'ISO-8859-2', label: 'ISO-8859-2 (Central European)' },
-        // Add more encodings as needed and supported by TextDecoder
     ];
 
     return (
@@ -111,5 +91,4 @@ function FileUploader({ onFileLoad, setNotification, clearSubtitles, fileInputRe
         </div>
     );
 }
-
 export default FileUploader;
