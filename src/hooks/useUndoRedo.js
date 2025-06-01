@@ -2,42 +2,46 @@
 import React from 'react';
 
 export function useUndoRedo(initialState) {
+    // The state includes the core data (subtitles, originalFileName) 
+    // and a flag for unsaved changes.
     const [state, setState] = React.useState({
         past: [],
-        present: initialState,
+        present: { ...initialState, hasUnsavedChanges: false }, // Initialize with no unsaved changes
         future: []
     });
 
     const canUndo = state.past.length > 0;
     const canRedo = state.future.length > 0;
 
+    // updatePresent is called when a new state is set by an action.
+    // actionType helps determine if 'hasUnsavedChanges' should be set.
     const updatePresent = React.useCallback((newPresentData, actionType = "standard_edit") => {
         setState(currentState => {
-            // Check if only hasUnsavedChanges flag is different, without actual data change
-            const dataIsSame = JSON.stringify(newPresentData.subtitles) === JSON.stringify(currentState.present.subtitles) &&
-                               newPresentData.originalFileName === currentState.present.originalFileName;
+            // Determine if the core data (subtitles, filename) actually changed.
+            const subtitlesChanged = JSON.stringify(newPresentData.subtitles) !== JSON.stringify(currentState.present.subtitles);
+            const fileNameChanged = newPresentData.originalFileName !== currentState.present.originalFileName;
+            const actualDataChanged = subtitlesChanged || fileNameChanged;
 
             let newHasUnsavedChanges;
-            if (actionType === "save") {
-                newHasUnsavedChanges = false;
-            } else if (actionType === "load_or_reset") {
-                newHasUnsavedChanges = false;
-            } else { // standard_edit or any other action implying a change
-                newHasUnsavedChanges = true;
+            if (actionType === "save_action" || actionType === "load_or_reset_action") {
+                newHasUnsavedChanges = false; // Saving or loading/resetting clears unsaved status
+            } else { // Any other action implies a potential change
+                newHasUnsavedChanges = actualDataChanged || currentState.present.hasUnsavedChanges;
             }
             
-            // If data is the same and hasUnsavedChanges is also the same as intended, no update
-            if (dataIsSame && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) {
-                 return currentState;
+            // If no actual data changed AND the unsaved status is also not changing, don't push to history.
+            // This prevents pushing to history just for a flag change if data is identical.
+            if (!actualDataChanged && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) {
+                 return { ...currentState, present: { ...currentState.present, hasUnsavedChanges: newHasUnsavedChanges }};
             }
             
             const newPast = [...currentState.past, currentState.present];
-            const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); // Limit history
+            const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); // Limit history size
 
             return {
                 past: limitedPast,
                 present: { ...newPresentData, hasUnsavedChanges: newHasUnsavedChanges },
-                future: [] // Clear future on new state update
+                future: [] // Clear future on new state update (standard undo/redo behavior)
             };
         });
     }, []);
@@ -62,10 +66,11 @@ export function useUndoRedo(initialState) {
         });
     }, [canRedo]);
 
+    // Resets the state to a new initial state, typically after loading a new file or clearing all.
     const resetState = React.useCallback((newInitialState) => {
         setState({
             past: [],
-            present: { ...newInitialState, hasUnsavedChanges: false }, // Ensure unsaved is false on reset
+            present: { ...newInitialState, hasUnsavedChanges: false }, // Explicitly set unsaved to false
             future: []
         });
     }, []);
