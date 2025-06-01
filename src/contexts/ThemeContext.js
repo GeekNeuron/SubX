@@ -6,7 +6,8 @@ const ThemeContext = React.createContext();
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = React.useState(() => {
         const savedTheme = localStorage.getItem('subx-theme');
-        return savedTheme || 'light'; // Default to light theme
+        // Default to 'light' if no theme is saved or if 'system' was previously saved (which we don't handle explicitly here)
+        return savedTheme === 'dark' ? 'dark' : 'light'; 
     });
 
     React.useEffect(() => {
