@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubX - Subtitle Editor</title>
+    <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
+    <meta name="theme-color" content="#0ea5e9" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> 
+    
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /*
+          All custom CSS rules have been removed from here to prevent parsing errors 
+          in some sandboxed build environments that might misinterpret CSS within JS comments.
+          Rely primarily on Tailwind CSS for styling.
+          For specific overrides in a real project, use a separate, properly linked CSS file.
+        */
+        body { 
+            font-family: 'Inter', sans-serif; /* Defaulting to Inter */
+            transition: background-color 0.3s ease, color 0.3s ease; 
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // or 'media'
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'], // Default sans-serif font
+            },
+            keyframes: {
+              flash: {
+                '0%, 100%': { backgroundColor: 'transparent' },
+                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with more opacity */
+                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.6)' }, 
+              }
+            },
+            animation: {
+              flash: 'flash 1.2s ease-in-out',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+</body>
+</html>
