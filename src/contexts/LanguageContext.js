@@ -37,10 +37,8 @@ export function useLanguage() {
 
 export function useTranslation() {
     const { language, translations: transObj } = useLanguage();
-
     return (key, ...args) => {
         const translation = transObj[language]?.[key] || transObj['en']?.[key] || key;
-
         if (typeof translation === 'function') {
             return translation(...args);
         }
