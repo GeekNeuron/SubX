@@ -23,8 +23,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     } = useUndoRedo({ subtitles: [], originalFileName: '', hasUnsavedChanges: false });
     
     const { subtitles, originalFileName, hasUnsavedChanges } = editorState;
-
-    const [isLoading, setIsLoading] = React.useState(false); 
+    const [isLoading, setIsLoading] = React.useState(false);
     const [findText, setFindText] = React.useState('');
     const [replaceText, setReplaceText] = React.useState('');
     const [shiftAmount, setShiftAmount] = React.useState('');
@@ -44,6 +43,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     const [isTwoPointSyncModalOpen, setIsTwoPointSyncModalOpen] = React.useState(false);
     const [videoSrc, setVideoSrc] = React.useState(null);
     const [videoDuration, setVideoDuration] = React.useState(0);
+    const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
     const videoRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -51,7 +51,9 @@ function SubtitleEditor({ setGlobalNotification }) {
         let newTitle = originalFileName ? `${originalFileName} - ${baseTitle}` : baseTitle;
         if (hasUnsavedChanges) newTitle = `* ${newTitle}`;
         document.title = newTitle;
+    }, [hasUnsavedChanges, originalFileName]);
 
+    React.useEffect(() => {
         if (appearanceConfig.autosave && hasUnsavedChanges) {
             if (subtitles.length > 0 || originalFileName) localStorage.setItem('subx-autosave-state', JSON.stringify(editorState));
             else localStorage.removeItem('subx-autosave-state');
@@ -65,16 +67,13 @@ function SubtitleEditor({ setGlobalNotification }) {
                 const autoSavedState = JSON.parse(autoSavedStateString);
                 resetEditorHistory({...autoSavedState, hasUnsavedChanges: true });
                 setGlobalNotification({ message: "Restored auto-saved session. Save to confirm changes.", type: "info" });
-            } catch (e) {
-                console.error("Failed to parse autosaved state:", e);
-                localStorage.removeItem('subx-autosave-state');
-            }
+            } catch (e) { console.error("Failed to parse autosaved state:", e); localStorage.removeItem('subx-autosave-state'); }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const withLoading = (fn, loadingMessage = 'Processing...') => {
-        setIsLoading(true); setGlobalNotification({ message: loadingMessage, type: 'info', isLoading: true }); 
+        setIsLoading(true); setGlobalNotification({ message: loadingMessage, type: 'info', isLoading: true });
         setTimeout(() => { 
             try { fn(); } catch (error) { console.error("Error during processing:", error); setGlobalNotification({ message: "An error occurred during processing.", type: 'error' }); } 
             finally { setIsLoading(false); } 
@@ -94,7 +93,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     const subtitlesToSRT = (subsArray) => subsArray.map((sub, index) => `${index + 1}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`).join('\n');
     
     const handleFileLoadInternal = (content, fileName) => {
-        setIsLoading(true); setGlobalNotification({ message: 'Loading file...', type: 'info', isLoading: true });
+        setIsLoading(true); setGlobalNotification({ message: 'Loading file...', type: 'info', isLoading: true }); 
         setTimeout(() => { 
             try {
                 const parsedSubtitles = parseSRT(content);
@@ -109,29 +108,20 @@ function SubtitleEditor({ setGlobalNotification }) {
             } finally { setIsLoading(false); } 
         }, 500); 
     };
-
+    
     const handleVideoFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
+            if (videoSrc) URL.revokeObjectURL(videoSrc); // Clean up previous object URL
             const url = URL.createObjectURL(file);
             setVideoSrc(url);
         }
         if (event.target) event.target.value = null;
     };
 
-    const handleVideoMetadata = (e) => {
-        setVideoDuration(e.target.duration * 1000); // in ms
-    };
+    const handleVideoMetadata = (e) => { setVideoDuration(e.target.duration * 1000); };
+    const handleVideoTimeUpdate = (e) => { setVideoCurrentTime(e.target.currentTime * 1000); };
 
-    const handleAddSubtitle = () => {
-        const lastSub = subtitles[subtitles.length -1];
-        const newStartTime = lastSub ? msToSrtTime(srtTimeToMs(lastSub.endTime) + 100) : "00:00:00,000";
-        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000); 
-        const newSub = { id: crypto.randomUUID(), startTime: newStartTime, endTime: newEndTime, text: "New subtitle..." };
-        setEditorStateWithUndo({ ...editorState, subtitles: [...subtitles, newSub] });
-        setActiveRowId(newSub.id); 
-        setTimeout(() => { if (subtitleRowsRef.current[newSub.id]) subtitleRowsRef.current[newSub.id].scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 0);
-    };
 
     const handleSaveSubtitles = React.useCallback(() => {
         if (subtitles.length === 0) { setGlobalNotification({ message: "No subtitles to save.", type: 'info' }); return; }
@@ -144,14 +134,80 @@ function SubtitleEditor({ setGlobalNotification }) {
         setGlobalNotification({ message: 'Subtitles saved successfully.', type: 'success' });
         setEditorStateWithUndo(editorState, "save_action"); 
     }, [subtitles, originalFileName, setGlobalNotification, setEditorStateWithUndo, editorState]);
-    
-    // ... all other handler functions (handleUpdateSubtitle, handleDeleteSubtitle, etc.) remain here ...
 
-    // Filtered subtitles for display
+    const handleAddSubtitle = () => {
+        const lastSub = subtitles[subtitles.length -1];
+        const newStartTime = lastSub ? msToSrtTime(srtTimeToMs(lastSub.endTime) + 100) : "00:00:00,000";
+        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000); 
+        const newSub = { id: crypto.randomUUID(), startTime: newStartTime, endTime: newEndTime, text: "New subtitle..." };
+        setEditorStateWithUndo({ ...editorState, subtitles: [...subtitles, newSub] });
+        setActiveRowId(newSub.id); 
+        setTimeout(() => { if (subtitleRowsRef.current[newSub.id]) subtitleRowsRef.current[newSub.id].scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 0);
+    };
+
+    const handleUpdateSubtitle = (id, updatedPart) => {
+        const newSubtitles = subtitles.map(sub => sub.id === id ? { ...sub, ...updatedPart } : sub);
+        setEditorStateWithUndo({ ...editorState, subtitles: newSubtitles });
+    };
+
     const filteredSubtitles = React.useMemo(() => {
         if (!searchTerm) return subtitles;
-        return subtitles.filter(sub => sub.text.toLowerCase().includes(searchTerm.toLowerCase()) || sub.startTime.includes(searchTerm) || sub.endTime.includes(searchTerm));
+        return subtitles.filter(sub => 
+            sub.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            sub.startTime.includes(searchTerm) ||
+            sub.endTime.includes(searchTerm)
+        );
     }, [subtitles, searchTerm]);
+    
+    // ... all other handler functions here (omitted for brevity, they are in the previous response)
+    const handleToggleEditRow = (rowId, isEditingNow) => {
+        setEditingRowId(isEditingNow ? rowId : null);
+    }; 
+    
+    React.useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.target.closest('.no-global-shortcuts')) return;
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
+            
+            // Global Play/Pause
+            if(event.code === 'Space' && !isInputFocused && videoRef.current) {
+                event.preventDefault();
+                videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
+            }
+
+            if (isInputFocused && event.key !== 'Escape') {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { 
+                    event.preventDefault(); handleSaveSubtitles(); 
+                }
+                return;
+            }
+
+            let currentIndex = -1; 
+            if (activeRowId && filteredSubtitles) { currentIndex = filteredSubtitles.findIndex(sub => sub.id === activeRowId); }
+
+            // Sync shortcuts
+            if ((event.ctrlKey || event.metaKey) && event.altKey) {
+                if (activeRowId && videoRef.current) {
+                    event.preventDefault();
+                    const newTime = msToSrtTime(videoRef.current.currentTime * 1000);
+                    const subToUpdate = subtitles.find(s => s.id === activeRowId);
+                    if(subToUpdate) {
+                        if(event.key.toLowerCase() === 's') {
+                            handleUpdateSubtitle(activeRowId, { startTime: newTime });
+                        } else if (event.key.toLowerCase() === 'e') {
+                            handleUpdateSubtitle(activeRowId, { endTime: newTime });
+                        }
+                    }
+                }
+            }
+            // Other shortcuts...
+            // ... (rest of the keydown logic from previous response)
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [/* all dependencies */]);
+
 
     const activeSubtitleForWaveform = React.useMemo(() => {
         if (activeRowId) return subtitles.find(sub => sub.id === activeRowId);
@@ -161,34 +217,27 @@ function SubtitleEditor({ setGlobalNotification }) {
 
     return (
         <div className="container mx-auto p-4">
-            <LoadingOverlay isActive={isLoading} message="Processing..." />
+            <LoadingOverlay isActive={isLoading} message={"Processing..."} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
-                    <FileUploader 
-                        onFileLoad={handleFileLoadInternal} 
-                        setNotification={setGlobalNotification} 
-                        clearSubtitles={() => resetEditorHistory({ subtitles: [], originalFileName: '', hasUnsavedChanges: false })}
-                        fileInputRef={fileInputRef}
-                    />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="lg:col-span-1">
+                    <FileUploader onFileLoad={handleFileLoadInternal} setNotification={setGlobalNotification} clearSubtitles={() => resetEditorHistory({ subtitles: [], originalFileName: '', hasUnsavedChanges: false })} fileInputRef={fileInputRef} />
                 </div>
-                <div>
-                     <label htmlFor="video-upload" className="w-full inline-block px-4 py-2 text-center bg-green-600 text-white rounded-md shadow hover:bg-green-700 cursor-pointer">
+                <div className="lg:col-span-1 flex flex-col justify-center">
+                    <label htmlFor="video-upload" className="w-full text-center px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 cursor-pointer">
                         Load Video
                     </label>
-                    <input id="video-upload" type="file" ref={videoFileRef} className="hidden" accept="video/*" onChange={handleVideoFileChange} />
+                    <input id="video-upload" type="file" ref={videoFileRef} className="hidden" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoFileChange} />
                 </div>
             </div>
 
             {videoSrc && (
-                <div className="my-4">
-                    <video ref={videoRef} src={videoSrc} controls className="w-full rounded-lg shadow-md" onLoadedMetadata={handleVideoMetadata}></video>
+                <div className="my-4 no-global-shortcuts"> {/* Prevent global shortcuts when focused here */}
+                    <video ref={videoRef} src={videoSrc} controls className="w-full rounded-lg shadow-md" onLoadedMetadata={handleVideoMetadata} onTimeUpdate={handleVideoTimeUpdate}></video>
                 </div>
             )}
 
-             {/* All other tool sections and subtitle table would go here... */}
-             {/* For brevity, I'm only showing the newly added components and layout logic. */}
-             {/* The existing JSX for tools, selected actions bar, and table should be placed here. */}
+            {/* Other buttons and tools would be here */}
 
             {subtitles.length > 0 && (
                 <VisualTimeline 
@@ -201,15 +250,35 @@ function SubtitleEditor({ setGlobalNotification }) {
                     activeRowId={activeRowId}
                     totalDuration={videoDuration > 0 ? videoDuration : (subtitles.length > 0 ? srtTimeToMs(subtitles[subtitles.length-1].endTime) + 5000 : 60000)}
                     subtitleErrors={subtitleErrors}
-                    currentTime={videoRef.current?.currentTime * 1000}
+                    currentTime={videoCurrentTime}
                 />
             )}
 
             <WaveformDisplay subtitle={activeSubtitleForWaveform} isActive={!!activeSubtitleForWaveform} />
 
-            {/* Subtitle Table and other components */}
-            {/* The rest of the SubtitleEditor JSX would follow... */}
+            {/* Placeholder for subtitle table and other UI elements */}
+            {subtitles.length === 0 && !isLoading && (
+                <div className="my-8 text-center text-slate-500 dark:text-slate-400">
+                    <p className="mt-2 text-lg">No subtitles loaded yet. Upload an .srt file to get started!</p>
+                </div>
+            )}
+            {subtitles.length > 0 && (
+                <div className="overflow-x-auto bg-white dark:bg-slate-800 shadow-lg rounded-lg">
+                    {/* ... The table JSX goes here, as provided in the previous step ... */}
+                </div>
+            )}
 
+             <TwoPointSyncModal
+                isOpen={isTwoPointSyncModalOpen}
+                onClose={() => setIsTwoPointSyncModalOpen(false)}
+                subtitles={subtitles}
+                selectedSubtitleIds={selectedSubtitleIds}
+                onSyncSubtitles={(syncedSubs) => {
+                    setEditorStateWithUndo(prev => ({ ...prev, subtitles: syncedSubs, hasUnsavedChanges: true }));
+                }}
+                setNotification={setGlobalNotification}
+                withLoading={withLoading}
+            />
         </div>
     );
 }
