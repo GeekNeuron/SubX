@@ -1,12 +1,12 @@
 import React from 'react';
-import Header from './components/Header';
-import SubtitleEditor from './components/SubtitleEditor';
-import Footer from './components/Footer';
-import SettingsModal from './components/SettingsModal';
-import HelpModal from './components/HelpModal';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { SettingsProvider } from './contexts/SettingsContext';
-import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext';
+import Header from './components/Header.js';
+import SubtitleEditor from './components/SubtitleEditor.js';
+import Footer from './components/Footer.js';
+import SettingsModal from './components/SettingsModal.js';
+import HelpModal from './components/HelpModal.js';
+import { ThemeProvider } from './contexts/ThemeContext.js';
+import { SettingsProvider } from './contexts/SettingsContext.js';
+import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext.js';
 
 const UpdateNotification = ({ registration }) => {
     const t = useTranslation();
@@ -58,11 +58,9 @@ function AppContent() {
                 const installingWorker = registration.installing;
                 if (installingWorker) {
                     installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed') {
-                            if (navigator.serviceWorker.controller) {
-                                setSwRegistration(registration);
-                                setShowUpdateNotification(true);
-                            }
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            setSwRegistration(registration);
+                            setShowUpdateNotification(true);
                         }
                     };
                 }
@@ -103,9 +101,7 @@ function AppContent() {
             {notification.message}
          </div>
        )}
-       {showUpdateNotification && swRegistration && (
-            <UpdateNotification registration={swRegistration} />
-       )}
+       {showUpdateNotification && swRegistration && (<UpdateNotification registration={swRegistration} />)}
     </div>
   );
 }
