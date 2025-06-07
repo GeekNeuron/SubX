@@ -64,5 +64,4 @@ function HelpModal({ isOpen, onClose }) {
         </div>
     );
 }
-
 export default HelpModal;
