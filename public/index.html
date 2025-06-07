@@ -6,21 +6,15 @@
     <title>SubX - Subtitle Editor</title>
     <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
     <meta name="theme-color" content="#0ea5e9" />
-    
-    <!--
-      Corrected Paths: Using relative paths from the HTML file's location.
-      This assumes manifest.json, favicon.ico are in the same 'public' folder,
-      and the icons are in a subfolder named 'icons'.
-    -->
     <link rel="manifest" href="manifest.json" /> 
     <link rel="icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        /* All custom CSS rules have been removed to prevent parsing errors. */
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Inter', 'Vazirmatn', sans-serif; 
             transition: background-color 0.3s ease, color 0.3s ease; 
             margin: 0;
             -webkit-font-smoothing: antialiased;
@@ -33,7 +27,8 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Inter', 'Vazirmatn', 'sans-serif'],
+              vazir: ['Vazirmatn', 'sans-serif'],
             },
             keyframes: {
               flash: {
