@@ -14,6 +14,7 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
         }
     }, [currentTime, totalDuration]);
 
+
     if (!subtitles || subtitles.length === 0) {
         return (
             <div className="my-6">
@@ -27,10 +28,12 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
 
     const effectiveTotalDuration = React.useMemo(() => {
         if (totalDuration && totalDuration > 1000) return totalDuration;
+        if (subtitles.length === 0) return 60000;
         const lastSub = subtitles[subtitles.length - 1];
         const maxEndTime = lastSub ? srtTimeToMs(lastSub.endTime) : 0;
-        return Math.max(maxEndTime + 5000, 60000); 
+        return Math.max(maxEndTime + 5000, 60000);
     }, [subtitles, totalDuration]);
+
 
     const handleBlockClick = (subId, subStartTime) => {
         onSelectSubtitle(subId);
@@ -73,7 +76,7 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                     return (
                         <div
                             key={sub.id}
-                            title={`#${index + 1}: ${sub.startTime} --> ${sub.endTime}\n${sub.text.substring(0, 50)}...`}
+                            title={`#${index + 1}: ${sub.startTime} --> ${sub.endTime}\n${sub.text.substring(0, 100)}...`}
                             className={`absolute h-10 top-1/2 -translate-y-1/2 rounded cursor-pointer transition-all duration-150 ease-in-out z-10
                                 ${bgColorClass}
                                 ${isSubActive ? 'ring-2 ring-offset-1 ring-sky-300 dark:ring-offset-slate-700 dark:ring-sky-200' : ''}
