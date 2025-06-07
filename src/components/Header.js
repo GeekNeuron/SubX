@@ -2,16 +2,16 @@
 import React from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 
+// All text is hardcoded in English
 function Header({ onSettingsClick, onHelpClick }) {
     const { toggleTheme, theme } = useTheme();
-    // Language selection removed for English-only version
 
     return (
         <header className="bg-slate-100 dark:bg-slate-800 p-4 shadow-md sticky top-0 z-50">
             <div className="container mx-auto flex justify-between items-center">
                 <h1 
                     className="text-2xl font-bold cursor-pointer text-sky-600 dark:text-sky-400"
-                    onClick={toggleTheme}
+                    onClick={toggleTheme} // Example: clicking title also toggles theme
                     title="Toggle Theme"
                 >
                     SubX - Subtitle Editor
@@ -53,7 +53,7 @@ function Header({ onSettingsClick, onHelpClick }) {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         )}
                     </button>
-                    {/* Language selector removed */}
+                    {/* Language selector removed for English-only version */}
                 </div>
             </div>
         </header>
