@@ -7,21 +7,14 @@
     <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
     <meta name="theme-color" content="#0ea5e9" />
     <link rel="manifest" href="manifest.json" /> 
-    
     <link rel="icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /*
-          All custom CSS rules have been removed from here to prevent parsing errors 
-          in some sandboxed build environments that might misinterpret CSS within JS comments.
-          Rely entirely on Tailwind CSS for styling.
-          If specific overrides are absolutely necessary for your final deployment, 
-          they should be in a separate, properly linked CSS file not managed by this environment.
-        */
+        /* All custom CSS rules have been removed to prevent parsing errors in sandboxed environments. */
         body { 
-            font-family: 'Inter', sans-serif; /* Defaulting to Inter for English project */
+            font-family: 'Inter', sans-serif; 
             transition: background-color 0.3s ease, color 0.3s ease; 
             margin: 0;
             -webkit-font-smoothing: antialiased;
@@ -30,17 +23,16 @@
     </style>
     <script>
       tailwind.config = {
-        darkMode: 'class', // or 'media'
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'], // Default sans-serif font
+              sans: ['Inter', 'sans-serif'],
             },
             keyframes: {
               flash: {
                 '0%, 100%': { backgroundColor: 'transparent' },
-                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with opacity */
-                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.6)' }, 
+                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' },
               }
             },
             animation: {
@@ -54,5 +46,5 @@
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    </body>
+</body>
 </html>
