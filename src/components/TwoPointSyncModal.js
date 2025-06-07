@@ -1,3 +1,4 @@
+// src/components/TwoPointSyncModal.js
 import React from 'react';
 import { srtTimeToMs, msToSrtTime } from '../utils/srtUtils';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -38,6 +39,7 @@ function TwoPointSyncModal({
             setPoint2Actual('');
         }
     }, [isOpen, selectedSubtitleIds, subtitles]);
+
 
     const handleSubmit = () => {
         const s1 = srtTimeToMs(point1Srt);
