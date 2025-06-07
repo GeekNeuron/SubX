@@ -25,6 +25,7 @@ export function SettingsProvider({ children }) {
     const [errorConfig, setErrorConfig] = React.useState(() => {
         const saved = localStorage.getItem('subx-error-config');
         try {
+            // Merge saved config with defaults to ensure all keys are present
             return saved ? { ...DEFAULT_ERROR_CONFIG, ...JSON.parse(saved) } : DEFAULT_ERROR_CONFIG;
         } catch (e) {
             console.error("Failed to parse error config from localStorage", e);
@@ -34,6 +35,7 @@ export function SettingsProvider({ children }) {
     const [appearanceConfig, setAppearanceConfig] = React.useState(() => {
         const saved = localStorage.getItem('subx-appearance-config');
         try {
+            // Merge saved config with defaults
             return saved ? { ...DEFAULT_APPEARANCE_CONFIG, ...JSON.parse(saved) } : DEFAULT_APPEARANCE_CONFIG;
         } catch (e) {
             console.error("Failed to parse appearance config from localStorage", e);
@@ -41,20 +43,27 @@ export function SettingsProvider({ children }) {
         }
     });
 
+    // Function to update error configuration
     const updateErrorConfig = (newConfig) => {
         const updated = { ...errorConfig, ...newConfig };
         setErrorConfig(updated);
         localStorage.setItem('subx-error-config', JSON.stringify(updated));
     };
+
+    // Function to reset error configuration to defaults
     const resetErrorConfigToDefaults = () => {
         setErrorConfig(DEFAULT_ERROR_CONFIG);
         localStorage.setItem('subx-error-config', JSON.stringify(DEFAULT_ERROR_CONFIG));
     };
+
+    // Function to update appearance configuration
     const updateAppearanceConfig = (newConfig) => {
         const updated = { ...appearanceConfig, ...newConfig };
         setAppearanceConfig(updated);
         localStorage.setItem('subx-appearance-config', JSON.stringify(updated));
     };
+
+    // Function to reset appearance configuration to defaults
     const resetAppearanceConfigToDefaults = () => {
         setAppearanceConfig(DEFAULT_APPEARANCE_CONFIG);
         localStorage.setItem('subx-appearance-config', JSON.stringify(DEFAULT_APPEARANCE_CONFIG));
@@ -62,45 +71,34 @@ export function SettingsProvider({ children }) {
 
     // Effect to ensure all default keys exist in the loaded config on initial mount
     React.useEffect(() => {
-        let needsErrorUpdate = false;
+        // For Error Config
         const currentErrorCfg = JSON.parse(localStorage.getItem('subx-error-config') || '{}');
-        const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg}; 
-        Object.keys(DEFAULT_ERROR_CONFIG).forEach(key => {
-            if (newErrorCfg[key] === undefined || typeof newErrorCfg[key] !== typeof DEFAULT_ERROR_CONFIG[key] ) {
-                newErrorCfg[key] = DEFAULT_ERROR_CONFIG[key];
-                needsErrorUpdate = true;
-            }
-        });
-        if (needsErrorUpdate || JSON.stringify(newErrorCfg) !== JSON.stringify(currentErrorCfg)) {
-            setErrorConfig(newErrorCfg);
+        const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg};
+        if (JSON.stringify(newErrorCfg) !== JSON.stringify(currentErrorCfg)) {
             localStorage.setItem('subx-error-config', JSON.stringify(newErrorCfg));
+            setErrorConfig(newErrorCfg); // Update state if migration occurred
         }
 
-        let needsAppearanceUpdate = false;
+        // For Appearance Config
         const currentAppearanceCfg = JSON.parse(localStorage.getItem('subx-appearance-config') || '{}');
         const newAppearanceCfg = {...DEFAULT_APPEARANCE_CONFIG, ...currentAppearanceCfg};
-        Object.keys(DEFAULT_APPEARANCE_CONFIG).forEach(key => {
-             if (newAppearanceCfg[key] === undefined || typeof newAppearanceCfg[key] !== typeof DEFAULT_APPEARANCE_CONFIG[key]) {
-                newAppearanceCfg[key] = DEFAULT_APPEARANCE_CONFIG[key];
-                needsAppearanceUpdate = true;
-            }
-        });
-        if (needsAppearanceUpdate || JSON.stringify(newAppearanceCfg) !== JSON.stringify(currentAppearanceCfg)) {
-            setAppearanceConfig(newAppearanceCfg);
+        if (JSON.stringify(newAppearanceCfg) !== JSON.stringify(currentAppearanceCfg)) {
             localStorage.setItem('subx-appearance-config', JSON.stringify(newAppearanceCfg));
+            setAppearanceConfig(newAppearanceCfg); // Update state if migration occurred
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); 
 
     return (
         <SettingsContext.Provider value={{ 
-            errorConfig, updateErrorConfig, resetErrorConfigToDefaults, DEFAULT_ERROR_CONFIG,
-            appearanceConfig, updateAppearanceConfig, resetAppearanceConfigToDefaults, DEFAULT_APPEARANCE_CONFIG 
+            errorConfig, updateErrorConfig, resetErrorConfigToDefaults,
+            appearanceConfig, updateAppearanceConfig, resetAppearanceConfigToDefaults
         }}>
             {children}
         </SettingsContext.Provider>
     );
 }
+
 export function useSettings() { 
     const context = React.useContext(SettingsContext);
     if (context === undefined) {
