@@ -24,7 +24,6 @@ export function SettingsProvider({ children }) {
         try {
             return saved ? { ...DEFAULT_ERROR_CONFIG, ...JSON.parse(saved) } : DEFAULT_ERROR_CONFIG;
         } catch (e) {
-            console.error("Failed to parse error config from localStorage", e);
             return DEFAULT_ERROR_CONFIG;
         }
     });
@@ -33,7 +32,6 @@ export function SettingsProvider({ children }) {
         try {
             return saved ? { ...DEFAULT_APPEARANCE_CONFIG, ...JSON.parse(saved) } : DEFAULT_APPEARANCE_CONFIG;
         } catch (e) {
-            console.error("Failed to parse appearance config from localStorage", e);
             return DEFAULT_APPEARANCE_CONFIG;
         }
     });
@@ -57,22 +55,6 @@ export function SettingsProvider({ children }) {
         localStorage.setItem('subx-appearance-config', JSON.stringify(DEFAULT_APPEARANCE_CONFIG));
     };
 
-    React.useEffect(() => {
-        const currentErrorCfg = JSON.parse(localStorage.getItem('subx-error-config') || '{}');
-        const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg};
-        if (JSON.stringify(newErrorCfg) !== JSON.stringify(currentErrorCfg)) {
-            localStorage.setItem('subx-error-config', JSON.stringify(newErrorCfg));
-            setErrorConfig(newErrorCfg);
-        }
-
-        const currentAppearanceCfg = JSON.parse(localStorage.getItem('subx-appearance-config') || '{}');
-        const newAppearanceCfg = {...DEFAULT_APPEARANCE_CONFIG, ...currentAppearanceCfg};
-        if (JSON.stringify(newAppearanceCfg) !== JSON.stringify(currentAppearanceCfg)) {
-            localStorage.setItem('subx-appearance-config', JSON.stringify(newAppearanceCfg));
-            setAppearanceConfig(newAppearanceCfg);
-        }
-    }, []); 
-
     return (
         <SettingsContext.Provider value={{ 
             errorConfig, updateErrorConfig, resetErrorConfigToDefaults,
@@ -82,6 +64,7 @@ export function SettingsProvider({ children }) {
         </SettingsContext.Provider>
     );
 }
+
 export function useSettings() { 
     const context = React.useContext(SettingsContext);
     if (context === undefined) {
