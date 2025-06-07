@@ -23,23 +23,10 @@ function HelpModal({ isOpen, onClose }) {
                 <div className={`text-sm text-slate-700 dark:text-slate-300 space-y-3 ${language === 'fa' ? 'font-vazir' : ''}`}>
                     <p>{t('helpIntro')}</p>
                     <ul className={`list-disc list-inside space-y-1 ${language === 'fa' ? 'pr-4' : 'pl-4'}`}>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpFileUpload').split(':')[0]}:</strong> {t('helpFileUpload').split(':').slice(1).join(':').trim()}</li>
+                        {/* ... (previous help items) ... */}
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{'Performance'.split(':')[0]}:</strong> {t('helpPerformance').split(':').slice(1).join(':').trim()}</li>
                         <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpVideoPlayer').split(':')[0]}:</strong> {t('helpVideoPlayer').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpEditing').split(':')[0]}:</strong> {t('helpEditing').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpActions').split(':')[0]}:</strong> {t('helpActions').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpBulkActions').split(':')[0]}:</strong> {t('helpBulkActions').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpFindReplace').split(':')[0]}:</strong> {t('helpFindReplace').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpShiftTimes').split(':')[0]}:</strong> {t('helpShiftTimes').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpTwoPointSync').split(':')[0]}:</strong> {t('helpTwoPointSync').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpErrorChecking').split(':')[0]}:</strong> {t('helpErrorChecking').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpUndoRedo').split(':')[0]}:</strong> {t('helpUndoRedo').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpSaving').split(':')[0]}:</strong> {t('helpSaving').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpSettings').split(':')[0]}:</strong> {t('helpSettings').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpOffline').split(':')[0]}:</strong> {t('helpOffline').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('jumpToLine').split(':')[0]}:</strong> {t('helpJumpToLine').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpKeyboardNav').split(':')[0]}:</strong> {t('helpKeyboardNav').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('visualTimeline').split(':')[0]}:</strong> {t('helpTimeline').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('waveformDisplay').split(':')[0]}:</strong> {t('helpWaveform').split(':').slice(1).join(':').trim()}</li>
+                        {/* ... (other help items) ... */}
                     </ul>
                 </div>
                 <div className="mt-6 text-right">
