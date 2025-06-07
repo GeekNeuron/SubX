@@ -9,30 +9,44 @@ function SettingsModal({ isOpen, onClose, setNotification }) {
         appearanceConfig, updateAppearanceConfig, resetAppearanceConfigToDefaults
     } = useSettings();
     const t = useTranslation();
+    
+    // Local state to manage form inputs before saving
     const [localErrorConfig, setLocalErrorConfig] = React.useState(errorConfig);
     const [localAppearanceConfig, setLocalAppearanceConfig] = React.useState(appearanceConfig);
 
-    React.useEffect(() => setLocalErrorConfig(errorConfig), [errorConfig]);
-    React.useEffect(() => setLocalAppearanceConfig(appearanceConfig), [appearanceConfig]);
+    // Sync local state if the global context changes while the modal is open
+    React.useEffect(() => {
+        setLocalErrorConfig(errorConfig);
+    }, [errorConfig, isOpen]);
+
+    React.useEffect(() => {
+        setLocalAppearanceConfig(appearanceConfig);
+    }, [appearanceConfig, isOpen]);
 
     if (!isOpen) return null;
 
+    // Handle changes in number inputs for error config
     const handleErrorChange = (e) => {
         const { name, value } = e.target;
         const parsedValue = parseInt(value, 10);
-        setLocalErrorConfig(prev => ({ ...prev, [name]: isNaN(parsedValue) ? '' : parsedValue }));
+        setLocalErrorConfig(prev => ({ 
+            ...prev, 
+            [name]: isNaN(parsedValue) ? '' : parsedValue // Allow empty input temporarily
+        }));
     };
+
+    // Handle changes in appearance settings (checkboxes, selects)
     const handleAppearanceChange = (e) => {
         const { name, value, type, checked } = e.target;
         setLocalAppearanceConfig(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
+
     const handleSave = () => {
+        // Validate and clean up error config before saving
         const validErrorConfig = { ...localErrorConfig };
         for (const key in validErrorConfig) {
-            if (typeof validErrorConfig[key] === 'string' && isNaN(parseInt(validErrorConfig[key], 10))) {
-                validErrorConfig[key] = DEFAULT_ERROR_CONFIG[key];
-            } else if (typeof validErrorConfig[key] === 'string') {
-                validErrorConfig[key] = parseInt(validErrorConfig[key], 10);
+            if (typeof validErrorConfig[key] !== 'number' || isNaN(validErrorConfig[key])) {
+                validErrorConfig[key] = DEFAULT_ERROR_CONFIG[key]; // Revert to default if invalid
             }
         }
         updateErrorConfig(validErrorConfig);
@@ -40,9 +54,11 @@ function SettingsModal({ isOpen, onClose, setNotification }) {
         setNotification({ message: t('settingsSaved'), type: 'success' });
         onClose();
     };
+
     const handleReset = () => {
         resetErrorConfigToDefaults();
         resetAppearanceConfigToDefaults();
+        // Update local state to reflect the reset
         setLocalErrorConfig(DEFAULT_ERROR_CONFIG);
         setLocalAppearanceConfig(DEFAULT_APPEARANCE_CONFIG);
         setNotification({ message: t('settingsReset'), type: 'info' });
@@ -57,7 +73,9 @@ function SettingsModal({ isOpen, onClose, setNotification }) {
             <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold">{t('settings')}</h2>
-                    <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    <button onClick={onClose} className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
                 <div className="space-y-6">
                     <section>
