@@ -1,6 +1,7 @@
 // src/components/Footer.js
 import React from 'react';
 
+// All text is hardcoded in English
 function Footer() {
     return (
         <footer className="text-center p-4 mt-8 text-sm text-slate-600 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700">
