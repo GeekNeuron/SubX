@@ -2,12 +2,14 @@
 import React from 'react';
 import { srtTimeToMs } from '../utils/srtUtils';
 
+// All text is hardcoded in English
 function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuration, subtitleErrors, currentTime }) {
     const containerRef = React.useRef(null);
     const playheadRef = React.useRef(null);
     
+    // Update playhead position based on video current time
     React.useEffect(() => {
-        if(playheadRef.current && totalDuration > 0){
+        if(playheadRef.current && totalDuration > 0 && currentTime >= 0){
             const percentage = (currentTime / totalDuration) * 100;
             playheadRef.current.style.left = `${percentage}%`;
         }
@@ -28,16 +30,20 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
     const effectiveTotalDuration = React.useMemo(() => {
         if (totalDuration && totalDuration > 1000) return totalDuration;
         if (subtitles.length === 0) return 60000; 
+        
         const lastSub = subtitles[subtitles.length - 1];
         const maxEndTime = lastSub ? srtTimeToMs(lastSub.endTime) : 0;
+        
         return Math.max(maxEndTime + 5000, 60000); 
     }, [subtitles, totalDuration]);
+
 
     const handleBlockClick = (subId, subStartTime) => {
         onSelectSubtitle(subId);
         if (containerRef.current) {
             const percentage = (subStartTime / effectiveTotalDuration) * 100;
-            const scrollPosition = (containerRef.current.scrollWidth * percentage / 100) - (containerRef.current.clientWidth / 2);
+            const containerWidth = containerRef.current.clientWidth;
+            const scrollPosition = (containerRef.current.scrollWidth * percentage / 100) - (containerWidth / 2);
             containerRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
         }
     };
@@ -60,11 +66,13 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                     const leftPercentage = (startMs / effectiveTotalDuration) * 100;
                     const widthPercentage = (durationMs / effectiveTotalDuration) * 100;
                     
-                    const minWidthPx = 3;
-                    const containerClientWidth = containerRef.current ? containerRef.current.clientWidth : 1000;
+                    const minWidthPx = 3; 
+                    const containerClientWidth = containerRef.current ? containerRef.current.clientWidth : 1000; 
                     const minWidthAsPercentage = (minWidthPx / containerClientWidth) * 100;
+
                     const calculatedWidth = Math.max(widthPercentage, minWidthAsPercentage || 0.1);
                     const finalWidthPercentage = Math.min(calculatedWidth, 100 - leftPercentage);
+
 
                     const isSubActive = sub.id === activeRowId;
                     const hasError = subtitleErrors && subtitleErrors.has(sub.id); 
@@ -73,14 +81,14 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                         ? 'bg-sky-500 dark:bg-sky-400' 
                         : 'bg-sky-600/70 dark:bg-sky-500/70 hover:bg-sky-500 dark:hover:bg-sky-400';
                     if (hasError) {
-                        bgColorClass = '!bg-red-500/80 dark:!bg-red-400/80';
+                        bgColorClass = '!bg-red-500/80 dark:!bg-red-400/80'; 
                     }
 
                     return (
                         <div
                             key={sub.id}
                             title={`#${index + 1}: ${sub.startTime} --> ${sub.endTime}\n${sub.text.substring(0, 50)}...`}
-                            className={`absolute h-10 top-1/2 -translate-y-1/2 rounded cursor-pointer transition-all duration-150 ease-in-out
+                            className={`absolute h-10 top-1/2 -translate-y-1/2 rounded cursor-pointer transition-all duration-150 ease-in-out z-10
                                 ${bgColorClass}
                                 ${isSubActive ? 'ring-2 ring-offset-1 ring-sky-300 dark:ring-offset-slate-700 dark:ring-sky-200' : ''}
                             `}
