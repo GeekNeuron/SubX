@@ -8,11 +8,13 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext';
 
+// This component handles the app update notification UI.
 const UpdateNotification = ({ registration }) => {
     const t = useTranslation();
     const [show, setShow] = React.useState(true);
 
     const handleUpdate = () => {
+        // Send a message to the waiting service worker to activate itself.
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         setShow(false);
     };
@@ -32,6 +34,7 @@ const UpdateNotification = ({ registration }) => {
     );
 };
 
+// This component handles the main layout and modal states.
 function AppContent() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
@@ -40,6 +43,7 @@ function AppContent() {
   const [swRegistration, setSwRegistration] = React.useState(null);
   const { language } = useLanguage();
 
+  // Effect for displaying and hiding global notifications.
   React.useEffect(() => {
     if (notification.message) {
       const timer = setTimeout(() => {
@@ -49,6 +53,7 @@ function AppContent() {
     }
   }, [notification]);
 
+  // Effect for registering the service worker and handling updates.
   React.useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js')
@@ -60,7 +65,8 @@ function AppContent() {
                     installingWorker.onstatechange = () => {
                         if (installingWorker.state === 'installed') {
                             if (navigator.serviceWorker.controller) {
-                                                                setSwRegistration(registration);
+                                // New update is available.
+                                setSwRegistration(registration);
                                 setShowUpdateNotification(true);
                             }
                         }
@@ -70,6 +76,7 @@ function AppContent() {
         })
         .catch(error => console.log('SubX SW registration failed:', error));
 
+      // Reload the page once the new service worker has taken control.
       let refreshing;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (refreshing) return;
