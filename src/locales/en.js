@@ -1,32 +1,21 @@
-// src/locales/en.js
 export const enTranslations = {
   appTitle: "SubX - Subtitle Editor",
   toggleTheme: "Toggle Theme",
   language: "Language",
   persian: "Persian",
   english: "English",
-  spanish: "Spanish",
-  french: "French",
-  german: "German",
-  italian: "Italian",
-  portuguese: "Portuguese",
-  japanese: "Japanese",
-  chinese_simplified: "Chinese (Simplified)",
   
   // File operations
   uploadSubtitle: "Upload Subtitle File (.srt)",
   fileName: "File:",
   noFileSelected: "No file selected",
-  saveSubtitles: "Save Subtitles (.srt)",
+  saveSubtitles: "Save Subtitles",
+  saveOriginal: "Save Original",
+  saveTranslation: "Save Translation",
   dropFileHere: "Drop .srt file here or click to upload",
   fileEncoding: "File Encoding:",
   autodetectUtf8: "Autodetect (UTF-8 default)",
-  windows1250: "Windows-1250 (Central European)",
-  windows1251: "Windows-1251 (Cyrillic)",
-  windows1252: "Windows-1252 (Western European)",
-  windows1256: "Windows-1256 (Arabic)",
-  iso8859_1: "ISO-8859-1 (Latin-1)",
-  iso8859_2: "ISO-8859-2 (Central European)",
+  windows1256: "Windows-1256 (Arabic/Persian)",
   loadVideo: "Load Video",
 
   // Table headers
@@ -35,6 +24,8 @@ export const enTranslations = {
   startTime: "Start Time",
   endTime: "End Time",
   text: "Text",
+  originalText: "Original Text",
+  translation: "Translation",
   actions: "Actions",
   
   // Main buttons
@@ -59,6 +50,8 @@ export const enTranslations = {
   twoPointSync: "Two-Point Sync",
   fixCommonErrors: "Fix Common Errors",
   checkForErrors: "Check for Errors",
+  fixLongLines: "Fix Long Lines",
+  mergeShortLines: "Merge Short Lines",
   
   // Modals
   help: "Help",
@@ -76,12 +69,12 @@ export const enTranslations = {
   maxCharsPerLine: "Max. Chars per Line",
   tableFont: "Subtitle Table Font",
   systemDefaultFont: "System Default",
-  vazirmatnFont: "Vazirmatn (Persian)",
   arialFont: "Arial",
   courierNewFont: "Courier New",
   showCharCountPerLine: "Show character count per line",
   showTotalLineCount: "Show total line count in editor",
   enableSpellCheck: "Enable browser spell check in editor",
+  translationMode: "Translation Mode",
   saveSettings: "Save Settings",
   resetToDefaults: "Reset to Defaults",
   closeSettings: "Close Settings",
@@ -109,10 +102,16 @@ export const enTranslations = {
   noOverlapsToFix: "No overlaps found to fix.",
   durationsFixed: (count) => `${count} duration issue(s) fixed.`,
   noDurationIssuesToFix: "No duration issues found to fix.",
+  longLinesFixed: (count) => `${count} long line(s) fixed successfully.`,
+  noLongLinesToFix: "No long lines found to fix.",
+  shortLinesMerged: (count) => `${count} short subtitle(s) merged successfully.`,
+  noShortLinesToFix: "No short-duration subtitles found to merge.",
   errorMarkersCleared: "Error markers cleared.",
   selectedDeleted: (count) => `${count} subtitle(s) deleted.`,
   settingsSaved: "Settings saved successfully.",
   settingsReset: "Settings reset to defaults.",
+  appUpdateAvailable: "A new version of SubX is available!",
+  reload: "Reload",
   
   // Bulk Actions Bar
   selectedCount: (count) => `${count} selected`,
@@ -169,7 +168,7 @@ export const enTranslations = {
   // Help Modal Content
   helpTitle: "SubX Help",
   helpIntro: "Welcome to SubX! This is a fully offline subtitle editor. Here are some tips:",
-  helpFileUpload: "File Upload: Drag & drop an .srt file onto the designated area, or click it (Ctrl+O) to open the file dialog. Select the file encoding if it's not UTF-8.",
+  helpFileUpload: "File Upload: Drag & drop an .srt file, or click it (Ctrl+O). Select the file encoding if it's not UTF-8.",
   helpVideoPlayer: "Video Player: Load a local video to sync your subtitles. Use `Spacebar` to play/pause, and `Ctrl+Alt+S`/`E` to set the active subtitle's start/end time to the video's current time.",
   helpEditing: "Editing: Click time/text fields to edit. `Esc` cancels. Browser spell check can be toggled in Settings.",
   helpActions: "Row Actions: Edit, Delete (`Ctrl+D` on active row), Split (`Ctrl+Shift+S`), and Merge Next (`Ctrl+Shift+M`) buttons are available.",
@@ -177,13 +176,14 @@ export const enTranslations = {
   helpFindReplace: "Find & Replace: Search for text globally. The searched text is highlighted in the table.",
   helpShiftTimes: "Shift Times: Adjust all subtitle timings by entering a millisecond value.",
   helpTwoPointSync: "Two-Point Sync: Use this tool to adjust subtitles based on two reference points in your video and the subtitle file. Useful for correcting drift or scaling issues.",
-  helpErrorChecking: "Error Checking: Identify common issues. Error thresholds (like Max Lines/Chars) can be adjusted in Settings. Some errors can be auto-fixed.",
+  helpErrorChecking: "Error Checking: Identify common issues. Use the 'Fix' buttons to attempt automatic correction of overlaps, durations, or long lines.",
   helpUndoRedo: "Undo/Redo: Most actions are undoable (`Ctrl+Z`) and redoable (`Ctrl+Y`).",
-  helpSaving: "Saving: 'Save Subtitles' (`Ctrl+S`) downloads your work. An asterisk (*) indicates unsaved changes.",
-  helpSettings: "Settings: Customize error checking, table font, editor displays, and autosave via the gear icon.",
-  helpOffline: "Offline First & PWA: SubX works offline once loaded. You can 'Install' SubX for a more app-like experience on supported browsers.",
+  helpSaving: "Saving: 'Save Subtitles' (`Ctrl+S`) downloads your work. An asterisk (`*`) indicates unsaved changes. In Translation Mode, a dropdown on the save button lets you save the original or translated version.",
+  helpSettings: "Settings: Customize error checking, fonts, display options, autosave, and Translation Mode via the gear icon.",
+  helpOffline: "Offline First & PWA: SubX works offline once loaded. You can 'Install' SubX for a more app-like experience. If a new version is available, you will be notified to reload.",
   helpJumpToLine: "Jump to Line: Use the input above the table to navigate to a specific subtitle number. The row will be selected and briefly highlighted.",
   helpKeyboardNav: "Keyboard Navigation: Use `ArrowUp`/`ArrowDown` to navigate rows. `Enter` toggles edit mode.",
-  helpTimeline: "Visual Timeline: A visual representation of subtitles over time. Click a block to jump to and select that subtitle in the table.",
-  helpWaveform: "Waveform: A conceptual visual representation of the active subtitle's sound."
+  helpTimeline: "Visual Timeline: A visual representation of subtitles over time. Click a block to jump to and select that subtitle. Hover over a block to see its content.",
+  helpWaveform: "Waveform: A conceptual visual representation of the active subtitle's sound.",
+  helpTranslationMode: "Translation Mode: Enable this in Settings to view the original text alongside an editable translation column. 'Save Translation' will save an SRT file with the translated text, while 'Save Original' saves the initial version."
 };
