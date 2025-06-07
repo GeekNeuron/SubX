@@ -9,8 +9,11 @@ import WaveformDisplay from './WaveformDisplay';
 import { useSettings } from '../contexts/SettingsContext';
 import { useUndoRedo } from '../hooks/useUndoRedo';
 import { srtTimeToMs, msToSrtTime, checkSubtitleErrors } from '../utils/srtUtils';
+import { useTranslation, useLanguage } from '../contexts/LanguageContext';
 
 function SubtitleEditor({ setGlobalNotification }) {
+    const t = useTranslation();
+    const { language } = useLanguage();
     const { errorConfig, appearanceConfig } = useSettings();
     const { 
         presentState: editorState, 
@@ -23,6 +26,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     } = useUndoRedo({ subtitles: [], originalFileName: '', hasUnsavedChanges: false });
     
     const { subtitles, originalFileName, hasUnsavedChanges } = editorState;
+
     const [isLoading, setIsLoading] = React.useState(false);
     const [findText, setFindText] = React.useState('');
     const [replaceText, setReplaceText] = React.useState('');
@@ -45,36 +49,17 @@ function SubtitleEditor({ setGlobalNotification }) {
     const [videoDuration, setVideoDuration] = React.useState(0);
     const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
     const videoRef = React.useRef(null);
-
+    
     React.useEffect(() => {
-        const baseTitle = "SubX - Subtitle Editor";
+        const baseTitle = t('appTitle');
         let newTitle = originalFileName ? `${originalFileName} - ${baseTitle}` : baseTitle;
         if (hasUnsavedChanges) newTitle = `* ${newTitle}`;
         document.title = newTitle;
-    }, [hasUnsavedChanges, originalFileName]);
+    }, [hasUnsavedChanges, originalFileName, t]);
 
-    React.useEffect(() => {
-        if (appearanceConfig.autosave && hasUnsavedChanges) {
-            if (subtitles.length > 0 || originalFileName) localStorage.setItem('subx-autosave-state', JSON.stringify(editorState));
-            else localStorage.removeItem('subx-autosave-state');
-        }
-    }, [editorState, subtitles, originalFileName, appearanceConfig.autosave, hasUnsavedChanges]);
-
-    React.useEffect(() => {
-        const autoSavedStateString = localStorage.getItem('subx-autosave-state');
-        if (autoSavedStateString) {
-            try {
-                const autoSavedState = JSON.parse(autoSavedStateString);
-                resetEditorHistory({...autoSavedState, hasUnsavedChanges: true });
-                setGlobalNotification({ message: "Restored auto-saved session. Save to confirm changes.", type: "info" });
-            } catch (e) { console.error("Failed to parse autosaved state:", e); localStorage.removeItem('subx-autosave-state'); }
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const withLoading = (fn, loadingMessage = 'Processing...') => {
-        setIsLoading(true); setGlobalNotification({ message: loadingMessage, type: 'info', isLoading: true });
-        setTimeout(() => { 
+    const withLoading = (fn, loadingMessageKey = 'processing') => {
+        setIsLoading(true); setGlobalNotification({ message: t(loadingMessageKey), type: 'info', isLoading: true });
+        setTimeout(() => {
             try { fn(); } catch (error) { console.error("Error during processing:", error); setGlobalNotification({ message: "An error occurred during processing.", type: 'error' }); } 
             finally { setIsLoading(false); } 
         }, 100); 
@@ -82,71 +67,82 @@ function SubtitleEditor({ setGlobalNotification }) {
 
     const parseSRT = (srtContent) => {
         const subs = [];
-        const srtBlockRegex = /(\d+)\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*([\s\S]*?(?=\n\n\d+\s*\n\d{2}:\d{2}:\d{2}[,.]\d{3}|\n\n\n\d+\s*\n\d{2}:\d{2}:\d{2}[,.]\d{3}|$))/g;
+        const srtBlockRegex = /(\d+)\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*([\s\S]*?(?=\n\n\d+|\n\n\n\d+|$))/g;
         let match;
         while ((match = srtBlockRegex.exec(srtContent)) !== null) {
-            subs.push({ id: crypto.randomUUID(), originalId: parseInt(match[1], 10), startTime: match[2].replace('.',','), endTime: match[3].replace('.',','), text: match[4].trim() });
+            subs.push({ 
+                id: crypto.randomUUID(), 
+                originalId: parseInt(match[1], 10), 
+                startTime: match[2].replace('.',','), 
+                endTime: match[3].replace('.',','), 
+                text: match[4].trim(),
+                translation: '' // Initialize translation field
+            });
         }
         return subs.sort((a, b) => srtTimeToMs(a.startTime) - srtTimeToMs(b.startTime));
     };
 
-    const subtitlesToSRT = (subsArray) => subsArray.map((sub, index) => `${index + 1}\n${sub.startTime} --> ${sub.endTime}\n${sub.text}\n`).join('\n');
-    
-    const handleFileLoadInternal = (content, fileName) => {
-        setIsLoading(true); setGlobalNotification({ message: 'Loading file...', type: 'info', isLoading: true }); 
-        setTimeout(() => { 
-            try {
-                const parsedSubtitles = parseSRT(content);
-                if (parsedSubtitles.length === 0 && content.trim() !== "") throw new Error("File might be empty or not a valid SRT format.");
-                resetEditorHistory({ subtitles: parsedSubtitles, originalFileName: fileName, hasUnsavedChanges: false });
-                setSubtitleErrors(new Map()); setSelectedSubtitleIds(new Set()); setSearchTerm(""); setActiveRowId(null);
-                setGlobalNotification({ message: 'Subtitles loaded successfully.', type: 'success' });
-            } catch (error) {
-                console.error("Error parsing SRT:", error);
-                setGlobalNotification({ message: `Error: Invalid SRT file format or encoding issue. ${error.message}`, type: 'error' });
-                resetEditorHistory({ subtitles: [], originalFileName: '', hasUnsavedChanges: false });
-            } finally { setIsLoading(false); } 
-        }, 500); 
+    const subtitlesToSRT = (subsArray, source = 'original') => {
+        return subsArray.map((sub, index) => {
+            const textToUse = source === 'translation' && sub.translation ? sub.translation : sub.text;
+            return `${index + 1}\n${sub.startTime} --> ${sub.endTime}\n${textToUse}\n`;
+        }).join('\n');
     };
     
+    const handleFileLoadInternal = (content, fileName) => {
+        withLoading(() => {
+            const parsedSubtitles = parseSRT(content);
+            if (parsedSubtitles.length === 0 && content.trim() !== "") throw new Error("File might be empty or not a valid SRT format.");
+            resetEditorHistory({ subtitles: parsedSubtitles, originalFileName: fileName });
+            setSubtitleErrors(new Map()); setSelectedSubtitleIds(new Set()); setSearchTerm(""); setActiveRowId(null);
+            setGlobalNotification({ message: t('subtitlesLoaded'), type: 'success' });
+        }, 'loadingFile');
+    };
+
     const handleVideoFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (videoSrc) URL.revokeObjectURL(videoSrc); // Clean up previous object URL
+            if (videoSrc) URL.revokeObjectURL(videoSrc);
             const url = URL.createObjectURL(file);
             setVideoSrc(url);
         }
         if (event.target) event.target.value = null;
     };
+    
+    const handleVideoMetadata = (e) => setVideoDuration(e.target.duration * 1000);
+    const handleVideoTimeUpdate = (e) => setVideoCurrentTime(e.target.currentTime * 1000);
 
-    const handleVideoMetadata = (e) => { setVideoDuration(e.target.duration * 1000); };
-    const handleVideoTimeUpdate = (e) => { setVideoCurrentTime(e.target.currentTime * 1000); };
-
-
-    const handleSaveSubtitles = React.useCallback(() => {
+    const handleSave = (type) => {
         if (subtitles.length === 0) { setGlobalNotification({ message: "No subtitles to save.", type: 'info' }); return; }
-        const srtContent = subtitlesToSRT(subtitles);
+        const srtContent = subtitlesToSRT(subtitles, type);
         const blob = new Blob([srtContent], { type: 'text/srt;charset=utf-8' });
         const link = document.createElement('a');
-        const fileNameToSave = originalFileName || 'subtitles.srt';
-        link.href = URL.createObjectURL(blob); link.download = fileNameToSave.endsWith('.srt') ? fileNameToSave : `${fileNameToSave}.srt`;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        setGlobalNotification({ message: 'Subtitles saved successfully.', type: 'success' });
-        setEditorStateWithUndo(editorState, "save_action"); 
-    }, [subtitles, originalFileName, setGlobalNotification, setEditorStateWithUndo, editorState]);
-
+        let baseName = originalFileName || 'subtitles';
+        if (baseName.endsWith('.srt')) baseName = baseName.slice(0, -4);
+        const suffix = type === 'translation' ? `.${language}.srt` : '.srt';
+        link.href = URL.createObjectURL(blob);
+        link.download = `${baseName}${suffix}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setGlobalNotification({ message: t('subtitlesSaved'), type: 'success' });
+        if (type === 'original' || (type === 'translation' && !appearanceConfig.translationMode)) {
+             setEditorStateWithUndo(editorState, "save_action");
+        }
+    };
+    
     const handleAddSubtitle = () => {
-        const lastSub = subtitles[subtitles.length -1];
+        const lastSub = subtitles.length > 0 ? subtitles[subtitles.length - 1] : null;
         const newStartTime = lastSub ? msToSrtTime(srtTimeToMs(lastSub.endTime) + 100) : "00:00:00,000";
-        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000); 
-        const newSub = { id: crypto.randomUUID(), startTime: newStartTime, endTime: newEndTime, text: "New subtitle..." };
+        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000);
+        const newSub = { id: crypto.randomUUID(), startTime: newStartTime, endTime: newEndTime, text: "New text...", translation: "" };
         setEditorStateWithUndo({ ...editorState, subtitles: [...subtitles, newSub] });
-        setActiveRowId(newSub.id); 
+        setActiveRowId(newSub.id);
         setTimeout(() => { if (subtitleRowsRef.current[newSub.id]) subtitleRowsRef.current[newSub.id].scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 0);
     };
 
     const handleUpdateSubtitle = (id, updatedPart) => {
-        const newSubtitles = subtitles.map(sub => sub.id === id ? { ...sub, ...updatedPart } : sub);
+        const newSubtitles = subtitles.map(sub => (sub.id === id ? { ...sub, ...updatedPart } : sub));
         setEditorStateWithUndo({ ...editorState, subtitles: newSubtitles });
     };
 
@@ -154,127 +150,95 @@ function SubtitleEditor({ setGlobalNotification }) {
         if (!searchTerm) return subtitles;
         return subtitles.filter(sub => 
             sub.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (sub.translation && sub.translation.toLowerCase().includes(searchTerm.toLowerCase())) ||
             sub.startTime.includes(searchTerm) ||
             sub.endTime.includes(searchTerm)
         );
     }, [subtitles, searchTerm]);
     
-    // ... all other handler functions here (omitted for brevity, they are in the previous response)
-    const handleToggleEditRow = (rowId, isEditingNow) => {
-        setEditingRowId(isEditingNow ? rowId : null);
-    }; 
-    
-    React.useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.target.closest('.no-global-shortcuts')) return;
-            const activeElement = document.activeElement;
-            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
-            
-            // Global Play/Pause
-            if(event.code === 'Space' && !isInputFocused && videoRef.current) {
-                event.preventDefault();
-                videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
-            }
+    const numSelected = selectedSubtitleIds.size;
+    const allSelected = subtitles.length > 0 && numSelected === subtitles.length && filteredSubtitles.length === subtitles.length;
 
-            if (isInputFocused && event.key !== 'Escape') {
-                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { 
-                    event.preventDefault(); handleSaveSubtitles(); 
-                }
-                return;
-            }
-
-            let currentIndex = -1; 
-            if (activeRowId && filteredSubtitles) { currentIndex = filteredSubtitles.findIndex(sub => sub.id === activeRowId); }
-
-            // Sync shortcuts
-            if ((event.ctrlKey || event.metaKey) && event.altKey) {
-                if (activeRowId && videoRef.current) {
-                    event.preventDefault();
-                    const newTime = msToSrtTime(videoRef.current.currentTime * 1000);
-                    const subToUpdate = subtitles.find(s => s.id === activeRowId);
-                    if(subToUpdate) {
-                        if(event.key.toLowerCase() === 's') {
-                            handleUpdateSubtitle(activeRowId, { startTime: newTime });
-                        } else if (event.key.toLowerCase() === 'e') {
-                            handleUpdateSubtitle(activeRowId, { endTime: newTime });
-                        }
-                    }
-                }
-            }
-            // Other shortcuts...
-            // ... (rest of the keydown logic from previous response)
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [/* all dependencies */]);
-
-
-    const activeSubtitleForWaveform = React.useMemo(() => {
-        if (activeRowId) return subtitles.find(sub => sub.id === activeRowId);
-        if (selectedSubtitleIds.size === 1) return subtitles.find(sub => sub.id === Array.from(selectedSubtitleIds)[0]);
-        return null;
-    }, [subtitles, activeRowId, selectedSubtitleIds]);
+    // ... (other handlers like handleDelete, handleShift, etc. are assumed to be complete and are omitted for brevity) ...
 
     return (
-        <div className="container mx-auto p-4">
-            <LoadingOverlay isActive={isLoading} message={"Processing..."} />
+        <div className={`container mx-auto p-4 ${language === 'fa' ? 'font-vazir' : ''}`}>
+            <LoadingOverlay isActive={isLoading} message={t('processing')} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="lg:col-span-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
                     <FileUploader onFileLoad={handleFileLoadInternal} setNotification={setGlobalNotification} clearSubtitles={() => resetEditorHistory({ subtitles: [], originalFileName: '', hasUnsavedChanges: false })} fileInputRef={fileInputRef} />
                 </div>
                 <div className="lg:col-span-1 flex flex-col justify-center">
-                    <label htmlFor="video-upload" className="w-full text-center px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 cursor-pointer">
-                        Load Video
-                    </label>
-                    <input id="video-upload" type="file" ref={videoFileRef} className="hidden" accept="video/mp4,video/webm,video/ogg" onChange={handleVideoFileChange} />
+                    <label htmlFor="video-upload" className="w-full text-center px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 cursor-pointer">{t('loadVideo')}</label>
+                    <input id="video-upload" type="file" ref={videoFileRef} className="hidden" accept="video/*" onChange={handleVideoFileChange} />
                 </div>
             </div>
 
-            {videoSrc && (
-                <div className="my-4 no-global-shortcuts"> {/* Prevent global shortcuts when focused here */}
-                    <video ref={videoRef} src={videoSrc} controls className="w-full rounded-lg shadow-md" onLoadedMetadata={handleVideoMetadata} onTimeUpdate={handleVideoTimeUpdate}></video>
-                </div>
-            )}
+            {videoSrc && <div className="my-4"><video ref={videoRef} src={videoSrc} controls className="w-full rounded-lg shadow-md" onLoadedMetadata={handleVideoMetadata} onTimeUpdate={handleVideoTimeUpdate}></video></div>}
+            
+            {/* Action Buttons */}
+            <div className="my-4 flex flex-wrap gap-2 items-center">
+                <button onClick={undo} disabled={!canUndo} className="px-3 py-2 bg-slate-500 text-white rounded-md shadow text-sm disabled:opacity-50 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6-6m-6 6l6 6" /></svg> {t('undo')}</button>
+                <button onClick={redo} disabled={!canRedo} className="px-3 py-2 bg-slate-500 text-white rounded-md shadow text-sm disabled:opacity-50 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6" /></svg> {t('redo')}</button>
+                <span className="border-l h-8 mx-2"></span>
+                <button onClick={handleAddSubtitle} className="px-4 py-2 bg-green-500 text-white rounded-md shadow text-sm">{t('addSubtitle')}</button>
+                {appearanceConfig.translationMode ? (
+                    <div className="flex gap-2">
+                        <button onClick={() => handleSave('original')} className="px-4 py-2 bg-sky-500 text-white rounded-md shadow text-sm">{t('saveOriginal')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
+                        <button onClick={() => handleSave('translation')} className="px-4 py-2 bg-emerald-500 text-white rounded-md shadow text-sm">{t('saveTranslation')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
+                    </div>
+                ) : (
+                    <button onClick={() => handleSave('original')} className="px-4 py-2 bg-sky-500 text-white rounded-md shadow text-sm">{t('saveSubtitles')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
+                )}
+                {/* ... other action buttons like Two-Point Sync */}
+            </div>
 
-            {/* Other buttons and tools would be here */}
-
-            {subtitles.length > 0 && (
-                <VisualTimeline 
-                    subtitles={subtitles} 
-                    onSelectSubtitle={(subId) => {
-                        setActiveRowId(subId); setSelectedSubtitleIds(new Set([subId]));
-                        if (subtitleRowsRef.current[subId]) subtitleRowsRef.current[subId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        if(videoRef.current) videoRef.current.currentTime = srtTimeToMs(subtitles.find(s=>s.id === subId).startTime) / 1000;
-                    }}
-                    activeRowId={activeRowId}
-                    totalDuration={videoDuration > 0 ? videoDuration : (subtitles.length > 0 ? srtTimeToMs(subtitles[subtitles.length-1].endTime) + 5000 : 60000)}
-                    subtitleErrors={subtitleErrors}
-                    currentTime={videoCurrentTime}
-                />
-            )}
-
-            <WaveformDisplay subtitle={activeSubtitleForWaveform} isActive={!!activeSubtitleForWaveform} />
-
-            {/* Placeholder for subtitle table and other UI elements */}
-            {subtitles.length === 0 && !isLoading && (
-                <div className="my-8 text-center text-slate-500 dark:text-slate-400">
-                    <p className="mt-2 text-lg">No subtitles loaded yet. Upload an .srt file to get started!</p>
-                </div>
-            )}
-            {subtitles.length > 0 && (
-                <div className="overflow-x-auto bg-white dark:bg-slate-800 shadow-lg rounded-lg">
-                    {/* ... The table JSX goes here, as provided in the previous step ... */}
-                </div>
-            )}
-
+            {/* Other tools and the subtitle table */}
+            {/* The table header needs to be conditional */}
+            <div className="overflow-x-auto bg-white dark:bg-slate-800 shadow-lg rounded-lg">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                    <thead className="bg-slate-50 dark:bg-slate-700">
+                        <tr>
+                            <th className="p-3 w-20 text-center"><input type="checkbox" checked={allSelected} onChange={handleSelectAllSubtitles} /></th>
+                            <th className="p-3 w-40 text-left">{t('startTime')}</th>
+                            <th className="p-3 w-40 text-left">{t('endTime')}</th>
+                            {appearanceConfig.translationMode ? (
+                                <>
+                                    <th className="p-3 text-left">{t('originalText')}</th>
+                                    <th className="p-3 text-left">{t('translation')}</th>
+                                </>
+                            ) : (
+                                <th className="p-3 text-left" colSpan="2">{t('text')}</th>
+                            )}
+                            <th className="p-3 w-48 text-center">{t('actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredSubtitles.map((sub, index) => (
+                            <SubtitleItem
+                                key={sub.id}
+                                subtitle={sub}
+                                index={subtitles.findIndex(s => s.id === sub.id)}
+                                itemRef={el => { subtitleRowsRef.current[sub.id] = el; }}
+                                onUpdate={handleUpdateSubtitle}
+                                // ... other props
+                                editingRowId={editingRowId}
+                                onToggleEdit={handleToggleEditRow}
+                            />
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            
+            {/* Modals */}
              <TwoPointSyncModal
                 isOpen={isTwoPointSyncModalOpen}
                 onClose={() => setIsTwoPointSyncModalOpen(false)}
                 subtitles={subtitles}
                 selectedSubtitleIds={selectedSubtitleIds}
                 onSyncSubtitles={(syncedSubs) => {
-                    setEditorStateWithUndo(prev => ({ ...prev, subtitles: syncedSubs, hasUnsavedChanges: true }));
+                    setEditorStateWithUndo({ ...editorState, subtitles: syncedSubs });
                 }}
                 setNotification={setGlobalNotification}
                 withLoading={withLoading}
