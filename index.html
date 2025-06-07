@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SubX - Subtitle Editor</title>
-    <meta name="description" content="SubX - A powerful, offline-first subtitle editor for SRT files.">
-    <meta name="theme-color" content="#0ea5e9" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> 
     
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png">
-
+    <!-- Dependencies from CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
     <style>
-        /* All custom CSS rules are removed from here to prevent parsing errors. */
-        /* Rely on Tailwind CSS for styling. */
         body { 
-            font-family: 'Inter', sans-serif; /* Defaulting to Inter */
+            font-family: 'Inter', 'Vazirmatn', sans-serif; 
             transition: background-color 0.3s ease, color 0.3s ease; 
             margin: 0;
             -webkit-font-smoothing: antialiased;
@@ -29,13 +27,13 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'], // Default sans-serif font
+              sans: ['Inter', 'Vazirmatn', 'sans-serif'],
+              vazir: ['Vazirmatn', 'sans-serif'],
             },
             keyframes: {
               flash: {
                 '0%, 100%': { backgroundColor: 'transparent' },
-                '25%, 75%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' }, /* amber-300 with opacity */
-                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.6)' }, 
+                '50%': { backgroundColor: 'rgba(250, 204, 21, 0.4)' },
               }
             },
             animation: {
@@ -49,5 +47,701 @@
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+
+    <script type="text/babel">
+        // All React code, components, contexts, and hooks will be placed here.
+        // No more imports/exports.
+        
+        // =======================================================================
+        // File: src/locales/en.js
+        // =======================================================================
+        const enTranslations = {
+          appTitle: "SubX - Subtitle Editor",
+          toggleTheme: "Toggle Theme",
+          language: "Language",
+          persian: "Persian",
+          english: "English",
+          uploadSubtitle: "Upload Subtitle File (.srt)",
+          fileName: "File:",
+          noFileSelected: "No file selected",
+          saveSubtitles: "Save Subtitles",
+          saveOriginal: "Save Original",
+          saveTranslation: "Save Translation",
+          dropFileHere: "Drop .srt file here or click to upload",
+          fileEncoding: "File Encoding:",
+          autodetectUtf8: "Autodetect (UTF-8 default)",
+          windows1256: "Windows-1256 (Arabic/Persian)",
+          loadVideo: "Load Video",
+          subtitleList: "Subtitle List",
+          lineNumber: "No.",
+          startTime: "Start Time",
+          endTime: "End Time",
+          text: "Text",
+          originalText: "Original Text",
+          translation: "Translation",
+          actions: "Actions",
+          addSubtitle: "Add New Subtitle",
+          clearAll: "Clear All",
+          edit: "Edit",
+          delete: "Delete",
+          split: "Split",
+          mergeNext: "Merge Next",
+          findAndReplace: "Find and Replace",
+          search: "Search Text",
+          replaceWith: "Replace With",
+          replaceAll: "Replace All",
+          countOccurrences: "Count Occurrences",
+          shiftTimes: "Shift Times",
+          shiftAllBy: "Shift all by (ms):",
+          applyShift: "Apply Shift",
+          twoPointSync: "Two-Point Sync",
+          fixCommonErrors: "Fix Common Errors",
+          checkForErrors: "Check for Errors",
+          fixLongLines: "Fix Long Lines",
+          mergeShortLines: "Merge Short Lines",
+          help: "Help",
+          settings: "Settings",
+          autosaveEnabled: "Enable Autosave",
+          generalSettings: "General Settings",
+          errorCheckingSettings: "Error Checking Settings",
+          appearanceSettings: "Appearance Settings",
+          editorSettings: "Editor Display Settings",
+          minDuration: "Min. Duration (ms)",
+          maxDuration: "Max. Duration (ms)",
+          maxLines: "Max. Lines per Subtitle",
+          maxCharsPerLine: "Max. Chars per Line",
+          tableFont: "Subtitle Table Font",
+          systemDefaultFont: "System Default",
+          arialFont: "Arial",
+          courierNewFont: "Courier New",
+          showCharCountPerLine: "Show character count per line",
+          showTotalLineCount: "Show total line count in editor",
+          enableSpellCheck: "Enable browser spell check in editor",
+          translationMode: "Translation Mode",
+          saveSettings: "Save Settings",
+          resetToDefaults: "Reset to Defaults",
+          closeSettings: "Close Settings",
+          errorInvalidSRT: "Error: Invalid SRT file format.",
+          errorReadFile: "Error: Could not read file.",
+          errorDecoding: "Error decoding file with selected encoding.",
+          subtitlesLoaded: "Subtitles loaded successfully.",
+          subtitlesSaved: "Subtitles saved successfully.",
+          confirmClear: "Are you sure you want to clear all subtitles? This cannot be undone.",
+          replaceAllConfirm: (count, findText) => `Replaced ${count} occurrence(s) of "${findText}".`,
+          nothingToReplace: (findText) => `No occurrences of "${findText}" found.`,
+          shiftApplied: (ms) => `All subtitles shifted by ${ms}ms.`,
+          invalidShiftAmount: "Invalid shift amount. Please enter a number.",
+          textNotFound: "Text not found.",
+          occurrencesFound: (count, findText) => `${count} occurrence(s) of "${findText}" found.`,
+          splitConfirm: "Subtitle split.",
+          mergeConfirm: "Subtitles merged.",
+          cannotMergeLast: "Cannot merge the last subtitle.",
+          cannotSplitEmpty: "Cannot split empty or very short text.",
+          errorsFound: (count) => `${count} error(s) found. See details in table.`,
+          noErrorsFound: "No common errors found.",
+          longLinesFixed: (count) => `${count} long line(s) fixed successfully.`,
+          noLongLinesToFix: "No long lines found to fix.",
+          shortLinesMerged: (count) => `${count} short subtitle(s) merged successfully.`,
+          noShortLinesToFix: "No short-duration subtitles found to merge.",
+          errorMarkersCleared: "Error markers cleared.",
+          selectedDeleted: (count) => `${count} subtitle(s) deleted.`,
+          settingsSaved: "Settings saved successfully.",
+          settingsReset: "Settings reset to defaults.",
+          appUpdateAvailable: "A new version of SubX is available!",
+          reload: "Reload",
+          selectedCount: (count) => `${count} selected`,
+          deleteSelected: "Delete Selected",
+          shiftSelectedBy: "Shift selected by (ms):",
+          applyShiftSelected: "Shift Selected",
+          setDurationForSelected: "Set duration for selected (ms):",
+          applyDurationSelected: "Set Duration",
+          noSubtitleSelectedForAction: "No subtitle selected for this action.",
+          durationSetForSelected: (count) => `Duration set for ${count} selected subtitle(s).`,
+          selectedShifted: (count, ms) => `${count} selected subtitle(s) shifted by ${ms}ms.`,
+          errorDetails: "Error Details",
+          errorTimeInvalid: "Invalid time order (start after end)",
+          errorTypeOverlap: "Overlap with next subtitle",
+          errorTypeTooShort: (duration, min) => `Duration too short: ${duration}ms (min: ${min}ms)`,
+          errorTypeTooLong: (duration, max) => `Duration too long: ${duration}ms (max: ${max}ms)`,
+          errorTypeTooManyLines: (lines, max) => `Too many lines: ${lines} (max: ${max})`,
+          errorTypeTooManyChars: (chars, max, lineNum) => `Line ${lineNum} too long: ${chars} chars (max: ${max})`,
+          undo: "Undo",
+          redo: "Redo",
+          findPlaceholder: "Text to find...",
+          replacePlaceholder: "Text to replace with...",
+          shiftPlaceholder: "e.g., 500 or -500",
+          cancel: "Cancel",
+          selectAll: "Select All",
+          searchTablePlaceholder: "Search in subtitles...",
+          jumpToLine: "Jump to Line",
+          jump: "Jump",
+          lineNumOutOfRange: (max) => `Line number out of range (1-${max}).`,
+          loadingFile: "Loading file...",
+          noSubtitlesLoaded: "No subtitles loaded yet. Upload an .srt file to get started!",
+          unsavedChangesIndicator: "*",
+          clearSearch: "Clear Search",
+          visualTimeline: "Visual Timeline",
+          waveformDisplay: "Conceptual Waveform",
+          syncSubtitles: "Sync Subtitles",
+          firstSubtitleTime: "1st Subtitle Time (SRT)",
+          firstVideoTime: "1st Video Time (Actual)",
+          secondSubtitleTime: "2nd Subtitle Time (SRT)",
+          secondVideoTime: "2nd Video Time (Actual)",
+          applyTo: "Apply to:",
+          allSubs: "All Subtitles",
+          selectedSubs: "Selected Subtitles",
+          syncErrorInvalidTimes: "Error: Invalid time format or points are identical.",
+          syncErrorNotEnoughSubs: "Error: At least two subtitles are needed for two-point sync.",
+          syncSuccess: (count) => `Successfully synchronized ${count} subtitle(s).`,
+          helpTitle: "SubX Help",
+          helpIntro: "Welcome to SubX! This is a fully offline subtitle editor. Here are some tips:",
+          helpFileUpload: "File Upload: Drag & drop an .srt file, or click it (Ctrl+O). Select the file encoding if it's not UTF-8.",
+          helpVideoPlayer: "Video Player: Load a local video to sync your subtitles. Use `Spacebar` to play/pause, and `Ctrl+Alt+S`/`E` to set the active subtitle's start/end time to the video's current time.",
+          helpEditing: "Editing: Click time/text fields to edit. `Esc` cancels. Browser spell check can be toggled in Settings.",
+          helpActions: "Row Actions: Edit, Delete (`Ctrl+D` on active row), Split (`Ctrl+Shift+S`), and Merge Next (`Ctrl+Shift+M`) buttons are available.",
+          helpBulkActions: "Bulk Actions: Use checkboxes or `Ctrl+A` to select. `Delete` key removes them. Some operations show a loading indicator. You can also shift selected subtitles or set their duration using the inputs in the 'Selected Actions' bar.",
+          helpFindReplace: "Find & Replace: Search for text globally. The searched text is highlighted in the table.",
+          helpShiftTimes: "Shift Times: Adjust all subtitle timings by entering a millisecond value.",
+          helpTwoPointSync: "Two-Point Sync: Use this tool to adjust subtitles based on two reference points in your video and the subtitle file. Useful for correcting drift or scaling issues.",
+          helpErrorChecking: "Error Checking: Identify common issues. Use the 'Fix' buttons to attempt automatic correction of overlaps, durations, or long lines.",
+          helpUndoRedo: "Undo/Redo: Most actions are undoable (`Ctrl+Z`) and redoable (`Ctrl+Y`).",
+          helpSaving: "Saving: 'Save Subtitles' (`Ctrl+S`) downloads your work. An asterisk (`*`) indicates unsaved changes. In Translation Mode, a dropdown on the save button lets you save the original or translated version.",
+          helpSettings: "Settings: Customize error checking, fonts, display options, autosave, and Translation Mode via the gear icon.",
+          helpOffline: "Offline First & PWA: SubX works offline once loaded. You can 'Install' SubX for a more app-like experience. If a new version is available, you will be notified to reload.",
+          helpJumpToLine: "Jump to Line: Use the input above the table to navigate to a specific subtitle number. The row will be selected and briefly highlighted.",
+          helpKeyboardNav: "Keyboard Navigation: Use `ArrowUp`/`ArrowDown` to navigate rows. `Enter` toggles edit mode.",
+          helpTimeline: "Visual Timeline: A visual representation of subtitles over time. Click a block to jump to and select that subtitle. Hover over a block to see its content.",
+          helpWaveform: "Waveform: A conceptual visual representation of the active subtitle's sound.",
+          helpTranslationMode: "Translation Mode: Enable this in Settings to view the original text alongside an editable translation column. 'Save Translation' will save an SRT file with the translated text, while 'Save Original' saves the initial version."
+        };
+
+        // =======================================================================
+        // File: src/locales/fa.js
+        // =======================================================================
+        const faTranslations = {
+          appTitle: "SubX - ویرایشگر زیرنویس",
+          toggleTheme: "تغییر پوسته",
+          language: "زبان",
+          persian: "فارسی",
+          english: "انگلیسی",
+          uploadSubtitle: "بارگذاری فایل زیرنویس (srt.)",
+          fileName: "نام فایل:",
+          noFileSelected: "هیچ فایلی انتخاب نشده",
+          saveSubtitles: "ذخیره زیرنویس",
+          saveOriginal: "ذخیره نسخه اصلی",
+          saveTranslation: "ذخیره ترجمه",
+          dropFileHere: "فایل srt. را اینجا بکشید یا برای بارگذاری کلیک کنید",
+          fileEncoding: "انکودینگ فایل:",
+          autodetectUtf8: "تشخیص خودکار (پیش‌فرض UTF-8)",
+          windows1256: "Windows-1256 (عربی/فارسی)",
+          loadVideo: "بارگذاری ویدیو",
+          subtitleList: "لیست زیرنویس‌ها",
+          lineNumber: "ردیف",
+          startTime: "زمان شروع",
+          endTime: "زمان پایان",
+          text: "متن",
+          originalText: "متن اصلی",
+          translation: "ترجمه",
+          actions: "عملیات",
+          addSubtitle: "افزودن زیرنویس جدید",
+          clearAll: "پاک کردن همه",
+          edit: "ویرایش",
+          delete: "حذف",
+          split: "تقسیم",
+          mergeNext: "ادغام با بعدی",
+          findAndReplace: "جستجو و جایگزینی",
+          search: "متن جستجو",
+          replaceWith: "جایگزینی با",
+          replaceAll: "جایگزینی همه",
+          countOccurrences: "شمارش تعداد",
+          shiftTimes: "جابجایی زمان‌ها",
+          shiftAllBy: "جابجایی همه به اندازه (میلی‌ثانیه):",
+          applyShift: "اعمال جابجایی",
+          twoPointSync: "همگام‌سازی دو نقطه‌ای",
+          fixCommonErrors: "رفع خطاهای رایج",
+          checkForErrors: "بررسی خطاها",
+          fixLongLines: "اصلاح خطوط طولانی",
+          mergeShortLines: "ادغام خطوط کوتاه",
+          help: "راهنما",
+          settings: "تنظیمات",
+          autosaveEnabled: "فعال‌سازی ذخیره خودکار",
+          generalSettings: "تنظیمات عمومی",
+          errorCheckingSettings: "تنظیمات بررسی خطا",
+          appearanceSettings: "تنظیمات ظاهری",
+          editorSettings: "تنظیمات نمایش ویرایشگر",
+          minDuration: "حداقل مدت (میلی‌ثانیه)",
+          maxDuration: "حداکثر مدت (میلی‌ثانیه)",
+          maxLines: "حداکثر خطوط در هر زیرنویس",
+          maxCharsPerLine: "حداکثر کاراکتر در هر خط",
+          tableFont: "فونت جدول زیرنویس",
+          systemDefaultFont: "فونت پیش‌فرض سیستم",
+          vazirmatnFont: "وزیرمتن",
+          arialFont: "Arial",
+          courierNewFont: "Courier New",
+          showCharCountPerLine: "نمایش تعداد کاراکتر در هر خط",
+          showTotalLineCount: "نمایش تعداد کل خطوط در ویرایشگر",
+          enableSpellCheck: "فعال‌سازی بررسی املای مرورگر در ویرایشگر",
+          translationMode: "حالت ترجمه",
+          saveSettings: "ذخیره تنظیمات",
+          resetToDefaults: "بازنشانی به پیش‌فرض",
+          closeSettings: "بستن تنظیمات",
+          errorInvalidSRT: "خطا: فرمت فایل SRT نامعتبر است.",
+          errorReadFile: "خطا: خواندن فایل امکان‌پذیر نیست.",
+          errorDecoding: "خطا در رمزگشایی فایل با انکودینگ انتخاب شده.",
+          subtitlesLoaded: "زیرنویس‌ها با موفقیت بارگذاری شدند.",
+          subtitlesSaved: "زیرنویس‌ها با موفقیت ذخیره شدند.",
+          confirmClear: "آیا از پاک کردن تمام زیرنویس‌ها مطمئن هستید؟ این عمل قابل بازگشت نیست.",
+          replaceAllConfirm: (count, findText) => `${count} مورد از "${findText}" جایگزین شد.`,
+          nothingToReplace: (findText) => `موردی از "${findText}" یافت نشد.`,
+          shiftApplied: (ms) => `زمان تمام زیرنویس‌ها ${ms} میلی‌ثانیه جابجا شد.`,
+          invalidShiftAmount: "مقدار جابجایی نامعتبر است. لطفا یک عدد وارد کنید.",
+          textNotFound: "متن یافت نشد.",
+          occurrencesFound: (count, findText) => `${count} مورد از "${findText}" یافت شد.`,
+          splitConfirm: "زیرنویس تقسیم شد.",
+          mergeConfirm: "زیرنویس‌ها ادغام شدند.",
+          cannotMergeLast: "امکان ادغام آخرین زیرنویس وجود ندارد.",
+          cannotSplitEmpty: "امکان تقسیم متن خالی یا خیلی کوتاه وجود ندارد.",
+          errorsFound: (count) => `${count} خطا پیدا شد. جزئیات در جدول قابل مشاهده است.`,
+          noErrorsFound: "هیچ خطای رایجی پیدا نشد.",
+          longLinesFixed: (count) => `${count} خط طولانی با موفقیت اصلاح شد.`,
+          noLongLinesToFix: "هیچ خط طولانی برای اصلاح یافت نشد.",
+          shortLinesMerged: (count) => `${count} زیرنویس کوتاه با موفقیت ادغام شد.`,
+          noShortLinesToFix: "هیچ زیرنویس با مدت زمان کوتاه برای ادغام یافت نشد.",
+          errorMarkersCleared: "نشانگرهای خطا پاک شدند.",
+          selectedDeleted: (count) => `${count} زیرنویس حذف شد.`,
+          settingsSaved: "تنظیمات با موفقیت ذخیره شد.",
+          settingsReset: "تنظیمات به مقادیر پیش‌فرض بازنشانی شد.",
+          appUpdateAvailable: "نسخه جدیدی از SubX در دسترس است!",
+          reload: "بارگذاری مجدد",
+          selectedCount: (count) => `${count} مورد انتخاب شده`,
+          deleteSelected: "حذف انتخاب‌شده‌ها",
+          shiftSelectedBy: "جابجایی انتخاب‌شده‌ها به اندازه (میلی‌ثانیه):",
+          applyShiftSelected: "جابجایی انتخاب‌شده‌ها",
+          setDurationForSelected: "تنظیم مدت زمان برای انتخاب‌شده‌ها (میلی‌ثانیه):",
+          applyDurationSelected: "تنظیم مدت",
+          noSubtitleSelectedForAction: "هیچ زیرنویسی برای این عملیات انتخاب نشده است.",
+          durationSetForSelected: (count) => `مدت زمان برای ${count} زیرنویس انتخاب شده تنظیم شد.`,
+          selectedShifted: (count, ms) => `${count} زیرنویس انتخاب شده ${ms} میلی‌ثانیه جابجا شد.`,
+          errorDetails: "جزئیات خطا",
+          errorTimeInvalid: "ترتیب زمانی نامعتبر (شروع بعد از پایان)",
+          errorTypeOverlap: "هم‌پوشانی با زیرنویس بعدی",
+          errorTypeTooShort: (duration, min) => `مدت زمان خیلی کوتاه: ${duration} میلی‌ثانیه (حداقل: ${min} میلی‌ثانیه)`,
+          errorTypeTooLong: (duration, max) => `مدت زمان خیلی طولانی: ${duration} میلی‌ثانیه (حداکثر: ${max} میلی‌ثانیه)`,
+          errorTypeTooManyLines: (lines, max) => `تعداد خطوط زیاد: ${lines} (حداکثر: ${max})`,
+          errorTypeTooManyChars: (chars, max, lineNum) => `خط ${lineNum} خیلی طولانی: ${chars} کاراکتر (حداکثر: ${max})`,
+          undo: "واگرد",
+          redo: "ازنو",
+          findPlaceholder: "متن برای جستجو...",
+          replacePlaceholder: "متن برای جایگزینی...",
+          shiftPlaceholder: "مثلا ۵۰۰ یا -۵۰۰",
+          cancel: "انصراف",
+          selectAll: "انتخاب همه",
+          searchTablePlaceholder: "جستجو در زیرنویس‌ها...",
+          jumpToLine: "پرش به سطر",
+          jump: "پرش",
+          lineNumOutOfRange: (max) => `شماره سطر خارج از محدوده است (1-${max}).`,
+          loadingFile: "در حال بارگذاری فایل...",
+          noSubtitlesLoaded: "هنوز هیچ زیرنویسی بارگذاری نشده است. برای شروع یک فایل .srt بارگذاری کنید!",
+          unsavedChangesIndicator: "*",
+          clearSearch: "پاک کردن جستجو",
+          visualTimeline: "خط زمانی بصری",
+          waveformDisplay: "شکل موج مفهومی",
+          syncSubtitles: "همگام‌سازی زیرنویس‌ها",
+          firstSubtitleTime: "زمان زیرنویس اول (SRT)",
+          firstVideoTime: "زمان ویدیوی اول (واقعی)",
+          secondSubtitleTime: "زمان زیرنویس دوم (SRT)",
+          secondVideoTime: "زمان ویدیوی دوم (واقعی)",
+          applyTo: "اعمال به:",
+          allSubs: "همه زیرنویس‌ها",
+          selectedSubs: "زیرنویس‌های انتخاب شده",
+          syncErrorInvalidTimes: "خطا: فرمت زمان نامعتبر است یا نقاط یکسان هستند.",
+          syncErrorNotEnoughSubs: "خطا: برای همگام‌سازی دو نقطه‌ای حداقل به دو زیرنویس نیاز است.",
+          syncSuccess: (count) => `همگام‌سازی ${count} زیرنویس با موفقیت انجام شد.`,
+          helpTitle: "راهنمای SubX",
+          helpIntro: "به SubX خوش آمدید! این یک ویرایشگر زیرنویس کاملاً آفلاین است. در اینجا چند نکته برای شروع کار وجود دارد:",
+          helpFileUpload: "بارگذاری فایل: فایل .srt را بکشید و در ناحیه مشخص شده رها کنید، یا روی آن کلیک کنید (Ctrl+O). انکودینگ فایل را در صورت نیاز انتخاب کنید.",
+          helpVideoPlayer: "پخش‌کننده ویدیو: یک ویدیوی محلی بارگذاری کنید تا زیرنویس‌ها را با تصویر همگام کنید. از Spacebar برای پخش/توقف و از Ctrl+Alt+S/E برای تنظیم زمان شروع/پایان زیرنویس فعال بر اساس موقعیت ویدیو استفاده کنید.",
+          helpEditing: "ویرایش زیرنویس‌ها: برای ویرایش، مستقیماً روی فیلدهای زمان یا متن کلیک کنید. از `Esc` برای لغو تغییرات استفاده کنید.",
+          helpActions: "عملیات سطر: هر سطر دارای دکمه‌هایی برای ویرایش، حذف (`Ctrl+D` روی سطر فعال)، تقسیم (`Ctrl+Shift+S`)، و ادغام با بعدی (`Ctrl+Shift+M`) است.",
+          helpBulkActions: "عملیات گروهی: از چک‌باکس‌ها یا `Ctrl+A` برای انتخاب استفاده کنید. `Delete` موارد انتخاب‌شده را حذف می‌کند. می‌توانید زمان زیرنویس‌های انتخاب شده را جابجا کرده یا مدت زمان نمایش آنها را تنظیم کنید.",
+          helpFindReplace: "جستجو و جایگزینی: متن جستجو شده در جدول هایلایت می‌شود.",
+          helpShiftTimes: "جابجایی زمان‌ها: زمان‌بندی تمام زیرنویس‌ها را به طور همزمان با وارد کردن یک مقدار مثبت یا منفی بر حسب میلی‌ثانیه تنظیم کنید.",
+          helpTwoPointSync: "همگام‌سازی دو نقطه‌ای: از این ابزار برای تنظیم زیرنویس‌ها بر اساس دو نقطه مرجع در ویدیو و فایل زیرنویس استفاده کنید.",
+          helpErrorChecking: "بررسی خطا: مشکلات رایج را شناسایی کنید. از دکمه‌های 'اصلاح' برای رفع خودکار هم‌پوشانی‌ها، مدت زمان‌ها، خطوط طولانی یا خطوط کوتاه استفاده کنید.",
+          helpUndoRedo: "واگرد/ازنو: اکثر عملیات قابل واگرد (`Ctrl+Z`) یا ازنو (`Ctrl+Y`) هستند.",
+          helpSaving: "ذخیره‌سازی: برای دانلود کار خود روی 'ذخیره' (`Ctrl+S`) کلیک کنید. یک ستاره (`*`) نشان‌دهنده تغییرات ذخیره‌نشده است. در حالت ترجمه، یک منوی کشویی به شما اجازه می‌دهد نسخه اصلی یا ترجمه را ذخیره کنید.",
+          helpSettings: "تنظیمات: پارامترهای بررسی خطا، فونت، گزینه‌های نمایش، ذخیره خودکار و حالت ترجمه را از طریق آیکون چرخ‌دنده سفارشی کنید.",
+          helpOffline: "اولویت آفلاین و PWA: SubX آفلاین کار می‌کند. می‌توانید آن را 'نصب' کنید. در صورت وجود نسخه جدید، به شما اطلاع داده می‌شود تا صفحه را رفرش کنید.",
+          helpJumpToLine: "پرش به سطر: از فیلد ورودی بالای جدول برای رفتن سریع به شماره زیرنویس مورد نظر استفاده کنید.",
+          helpKeyboardNav: "ناوبری با صفحه‌کلید: از کلیدهای جهت‌نما بالا/پایین برای جابجایی بین سطرها استفاده کنید. `Enter` حالت ویرایش را فعال/غیرفعال می‌کند.",
+          helpTimeline: "خط زمانی بصری: یک نمایش گرافیکی از زیرنویس‌ها. روی یک بلوک کلیک کنید تا به آن زیرنویس در جدول پرش کنید. با نگه داشتن ماوس روی بلوک، محتوای آن نمایش داده می‌شود.",
+          helpWaveform: "شکل موج: یک نمایش بصری ساده از صدای زیرنویس فعال برای کمک به زمان‌بندی.",
+          helpTranslationMode: "حالت ترجمه: این گزینه را در تنظیمات فعال کنید تا متن اصلی را در کنار ستون ترجمه قابل ویرایش مشاهده کنید."
+        };
+
+        // =======================================================================
+        // File: src/utils/srtUtils.js
+        // =======================================================================
+        const srtTimeToMs = (timeStr) => {
+            if (typeof timeStr !== 'string') return 0;
+            const parts = timeStr.match(/(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})/);
+            if (!parts) return 0;
+            return parseInt(parts[1], 10) * 3600000 + parseInt(parts[2], 10) * 60000 + parseInt(parts[3], 10) * 1000 + parseInt(parts[4], 10);
+        };
+
+        const msToSrtTime = (totalMs) => {
+            if (typeof totalMs !== 'number' || isNaN(totalMs) || totalMs < 0) totalMs = 0; 
+            const ms = Math.floor(totalMs % 1000);
+            const s = Math.floor(totalMs / 1000) % 60;
+            const m = Math.floor(totalMs / 60000) % 60;
+            const h = Math.floor(totalMs / 3600000);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+        };
+
+        function checkSubtitleErrors(subtitles, currentErrorConfig, t) {
+            const errorsMap = new Map();
+            if (!subtitles || !Array.isArray(subtitles)) return errorsMap;
+
+            subtitles.forEach((sub, index) => {
+                if (!sub || typeof sub.startTime !== 'string' || typeof sub.endTime !== 'string' || typeof sub.text !== 'string') {
+                    console.warn("Invalid subtitle object encountered:", sub);
+                    return;
+                }
+                const subErrorKeys = [];
+                const startTimeMs = srtTimeToMs(sub.startTime);
+                const endTimeMs = srtTimeToMs(sub.endTime);
+                const durationMs = endTimeMs - startTimeMs;
+
+                if (startTimeMs > endTimeMs) subErrorKeys.push(t('errorTimeInvalid'));
+                
+                if (index < subtitles.length - 1) {
+                    const nextSub = subtitles[index + 1];
+                    if (nextSub && typeof nextSub.startTime === 'string') {
+                        const nextStartTimeMs = srtTimeToMs(nextSub.startTime);
+                        if (endTimeMs > nextStartTimeMs) subErrorKeys.push(t('errorTypeOverlap'));
+                    }
+                }
+                if (durationMs >= 0 && durationMs < currentErrorConfig.MIN_DURATION_MS) {
+                    subErrorKeys.push(t('errorTypeTooShort', durationMs, currentErrorConfig.MIN_DURATION_MS));
+                }
+                if (durationMs > currentErrorConfig.MAX_DURATION_MS) {
+                    subErrorKeys.push(t('errorTypeTooLong', durationMs, currentErrorConfig.MAX_DURATION_MS));
+                }
+                
+                const lines = sub.text.split('\n');
+                if (lines.length > currentErrorConfig.MAX_LINES) {
+                    subErrorKeys.push(t('errorTypeTooManyLines', lines.length, currentErrorConfig.MAX_LINES));
+                }
+                lines.forEach((line, lineIndex) => {
+                    if (line.length > currentErrorConfig.MAX_CHARS_PER_LINE) {
+                        subErrorKeys.push(t('errorTypeTooManyChars', line.length, currentErrorConfig.MAX_CHARS_PER_LINE, lineIndex + 1));
+                    }
+                });
+
+                if (subErrorKeys.length > 0) errorsMap.set(sub.id, subErrorKeys);
+            });
+            return errorsMap;
+        }
+
+
+        // =======================================================================
+        // File: src/contexts/ThemeContext.js
+        // =======================================================================
+        const ThemeContext = React.createContext();
+
+        function ThemeProvider({ children }) {
+            const [theme, setTheme] = React.useState(() => localStorage.getItem('subx-theme') || 'light');
+
+            React.useEffect(() => {
+                document.documentElement.classList.remove('light', 'dark');
+                document.documentElement.classList.add(theme);
+                localStorage.setItem('subx-theme', theme);
+            }, [theme]);
+
+            const toggleTheme = () => {
+                setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+            };
+
+            return (
+                <ThemeContext.Provider value={{ theme, toggleTheme }}>
+                    {children}
+                </ThemeContext.Provider>
+            );
+        }
+
+        function useTheme() {
+            const context = React.useContext(ThemeContext);
+            if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
+            return context;
+        }
+
+        // =======================================================================
+        // File: src/contexts/SettingsContext.js
+        // =======================================================================
+        const DEFAULT_ERROR_CONFIG = { MIN_DURATION_MS: 1000, MAX_DURATION_MS: 7000, MAX_LINES: 2, MAX_CHARS_PER_LINE: 42, OVERLAP_FIX_GAP_MS: 1 };
+        const DEFAULT_APPEARANCE_CONFIG = { tableFont: 'font-sans', autosave: true, showCharCountPerLine: true, showTotalLineCount: true, spellCheck: true, translationMode: false }; 
+
+        const SettingsContext = React.createContext();
+
+        function SettingsProvider({ children }) {
+            const [errorConfig, setErrorConfig] = React.useState(() => {
+                const saved = localStorage.getItem('subx-error-config');
+                try { return saved ? { ...DEFAULT_ERROR_CONFIG, ...JSON.parse(saved) } : DEFAULT_ERROR_CONFIG; } 
+                catch (e) { return DEFAULT_ERROR_CONFIG; }
+            });
+            const [appearanceConfig, setAppearanceConfig] = React.useState(() => {
+                const saved = localStorage.getItem('subx-appearance-config');
+                try { return saved ? { ...DEFAULT_APPEARANCE_CONFIG, ...JSON.parse(saved) } : DEFAULT_APPEARANCE_CONFIG; } 
+                catch (e) { return DEFAULT_APPEARANCE_CONFIG; }
+            });
+
+            const updateErrorConfig = (newConfig) => {
+                const updated = { ...errorConfig, ...newConfig };
+                setErrorConfig(updated);
+                localStorage.setItem('subx-error-config', JSON.stringify(updated));
+            };
+            const resetErrorConfigToDefaults = () => {
+                setErrorConfig(DEFAULT_ERROR_CONFIG);
+                localStorage.setItem('subx-error-config', JSON.stringify(DEFAULT_ERROR_CONFIG));
+            };
+            const updateAppearanceConfig = (newConfig) => {
+                const updated = { ...appearanceConfig, ...newConfig };
+                setAppearanceConfig(updated);
+                localStorage.setItem('subx-appearance-config', JSON.stringify(updated));
+            };
+            const resetAppearanceConfigToDefaults = () => {
+                setAppearanceConfig(DEFAULT_APPEARANCE_CONFIG);
+                localStorage.setItem('subx-appearance-config', JSON.stringify(DEFAULT_APPEARANCE_CONFIG));
+            };
+
+            React.useEffect(() => {
+                const currentErrorCfg = JSON.parse(localStorage.getItem('subx-error-config') || '{}');
+                const newErrorCfg = {...DEFAULT_ERROR_CONFIG, ...currentErrorCfg};
+                if (JSON.stringify(newErrorCfg) !== JSON.stringify(currentErrorCfg)) {
+                    localStorage.setItem('subx-error-config', JSON.stringify(newErrorCfg));
+                    setErrorConfig(newErrorCfg);
+                }
+                const currentAppearanceCfg = JSON.parse(localStorage.getItem('subx-appearance-config') || '{}');
+                const newAppearanceCfg = {...DEFAULT_APPEARANCE_CONFIG, ...currentAppearanceCfg};
+                if (JSON.stringify(newAppearanceCfg) !== JSON.stringify(currentAppearanceCfg)) {
+                    localStorage.setItem('subx-appearance-config', JSON.stringify(newAppearanceCfg));
+                    setAppearanceConfig(newAppearanceCfg);
+                }
+            }, []); 
+
+            return (
+                <SettingsContext.Provider value={{ errorConfig, updateErrorConfig, resetErrorConfigToDefaults, appearanceConfig, updateAppearanceConfig, resetAppearanceConfigToDefaults }}>
+                    {children}
+                </SettingsContext.Provider>
+            );
+        }
+
+        function useSettings() { 
+            const context = React.useContext(SettingsContext);
+            if (context === undefined) throw new Error('useSettings must be used within a SettingsProvider');
+            return context;
+        }
+
+
+        // =======================================================================
+        // File: src/contexts/LanguageContext.js
+        // =======================================================================
+        const LanguageContext = React.createContext();
+
+        function LanguageProvider({ children }) {
+            const [language, setLanguage] = React.useState(() => localStorage.getItem('subx-language') || 'en');
+
+            React.useEffect(() => {
+                localStorage.setItem('subx-language', language);
+                document.documentElement.lang = language;
+                document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr';
+            }, [language]);
+
+            const setLang = (lang) => setLanguage(lang);
+
+            return (
+                <LanguageContext.Provider value={{ language, setLang, translations }}>
+                    {children}
+                </LanguageContext.Provider>
+            );
+        }
+
+        function useLanguage() {
+            const context = React.useContext(LanguageContext);
+            if (context === undefined) throw new Error('useLanguage must be used within a LanguageProvider');
+            return context;
+        }
+
+        function useTranslation() {
+            const { language, translations: transObj } = useLanguage();
+            return (key, ...args) => {
+                const translation = transObj[language]?.[key] || transObj['en']?.[key] || key;
+                if (typeof translation === 'function') return translation(...args);
+                return translation;
+            };
+        }
+
+        // =======================================================================
+        // File: src/hooks/useUndoRedo.js
+        // =======================================================================
+        function useUndoRedo(initialState) {
+            const [state, setState] = React.useState({ past: [], present: initialState, future: [] });
+            const canUndo = state.past.length > 0;
+            const canRedo = state.future.length > 0;
+
+            const updatePresent = React.useCallback((newPresentData, actionType = "standard_edit") => {
+                setState(currentState => {
+                    const dataIsSame = JSON.stringify(newPresentData.subtitles) === JSON.stringify(currentState.present.subtitles) && newPresentData.originalFileName === currentState.present.originalFileName;
+                    let newHasUnsavedChanges;
+                    if (actionType === "save_action") newHasUnsavedChanges = false;
+                    else if (actionType === "load_or_reset_action") newHasUnsavedChanges = false;
+                    else newHasUnsavedChanges = !dataIsSame || currentState.present.hasUnsavedChanges;
+                    
+                    if (dataIsSame && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) return currentState;
+                    
+                    const newPast = [...currentState.past, currentState.present];
+                    const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); 
+                    return { past: limitedPast, present: { ...newPresentData, hasUnsavedChanges: newHasUnsavedChanges }, future: [] };
+                });
+            }, []);
+
+            const undo = React.useCallback(() => {
+                if (!canUndo) return;
+                setState(currentState => {
+                    const newPresent = currentState.past[currentState.past.length - 1];
+                    const newPast = currentState.past.slice(0, currentState.past.length - 1);
+                    const newFuture = [currentState.present, ...currentState.future];
+                    return { past: newPast, present: newPresent, future: newFuture };
+                });
+            }, [canUndo]);
+
+            const redo = React.useCallback(() => {
+                if (!canRedo) return;
+                setState(currentState => {
+                    const newPresent = currentState.future[0];
+                    const newFuture = currentState.future.slice(1);
+                    const newPast = [...currentState.past, currentState.present];
+                    return { past: newPast, present: newPresent, future: newFuture };
+                });
+            }, [canRedo]);
+
+            const resetState = React.useCallback((newInitialState) => {
+                setState({ past: [], present: { ...newInitialState, hasUnsavedChanges: false }, future: [] });
+            }, []);
+
+            return { presentState: state.present, setPresentState: updatePresent, undo, redo, canUndo, canRedo, resetState };
+        }
+
+
+        // ... All other components go here, as provided in the last messages ...
+        // For example, App, Footer, Header, LoadingOverlay, etc. would be defined here.
+
+
+        // =======================================================================
+        // File: src/App.js (Main Component)
+        // =======================================================================
+        const UpdateNotification = ({ registration }) => {
+            const t = useTranslation();
+            const [show, setShow] = React.useState(true);
+
+            const handleUpdate = () => {
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                setShow(false);
+            };
+
+            if (!show) return null;
+
+            return (
+                <div className="fixed bottom-4 left-4 z-[200] p-4 bg-sky-600 text-white rounded-lg shadow-lg flex items-center gap-4">
+                    <span>{t('appUpdateAvailable')}</span>
+                    <button onClick={handleUpdate} className="px-3 py-1 bg-white text-sky-700 font-bold rounded hover:bg-slate-200">{t('reload')}</button>
+                </div>
+            );
+        };
+
+        function AppContent() {
+          const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
+          const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
+          const [notification, setNotification] = React.useState({ message: '', type: '' });
+          const [showUpdateNotification, setShowUpdateNotification] = React.useState(false);
+          const [swRegistration, setSwRegistration] = React.useState(null);
+          const { language } = useLanguage();
+
+          React.useEffect(() => {
+            if (notification.message) {
+              const timer = setTimeout(() => { setNotification({ message: '', type: '' }); }, 3000);
+              return () => clearTimeout(timer);
+            }
+          }, [notification]);
+
+          React.useEffect(() => {
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('SubX SW registered:', registration.scope);
+                    registration.onupdatefound = () => {
+                        const installingWorker = registration.installing;
+                        if (installingWorker) {
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    setSwRegistration(registration);
+                                    setShowUpdateNotification(true);
+                                }
+                            };
+                        }
+                    };
+                })
+                .catch(error => console.log('SubX SW registration failed:', error));
+              let refreshing;
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  if (refreshing) return;
+                  window.location.reload();
+                  refreshing = true;
+              });
+            }
+          }, []);
+          
+          return (
+            <div className={`flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans ${language === 'fa' ? 'font-vazir' : ''}`}>
+              <Header onSettingsClick={() => setIsSettingsModalOpen(true)} onHelpClick={() => setIsHelpModalOpen(true)} />
+              <main className="flex-grow">
+                <SubtitleEditor setGlobalNotification={setNotification} />
+              </main>
+              <Footer />
+              <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} setNotification={setNotification} />
+              <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
+              {notification.message && !notification.isLoading && (
+                 <div className={`fixed top-20 p-4 rounded-md shadow-lg z-[150] transition-all duration-300 ${notification.message ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5 pointer-events-none'} ${language === 'fa' ? 'left-4' : 'right-4'} ${notification.type === 'success' ? 'bg-green-500 text-white' : ''} ${notification.type === 'error' ? 'bg-red-500 text-white' : ''} ${notification.type === 'info' ? 'bg-sky-500 text-white' : ''} ${notification.type === 'warning' ? 'bg-yellow-500 text-black' : ''} `}>
+                    {notification.message}
+                 </div>
+               )}
+               {showUpdateNotification && swRegistration && (<UpdateNotification registration={swRegistration} />)}
+            </div>
+          );
+        }
+
+        function MainApp() {
+          return (
+            <ThemeProvider>
+              <LanguageProvider>
+                <SettingsProvider>
+                  <AppContent />
+                </SettingsProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          );
+        }
+
+        // =======================================================================
+        // File: src/index.js (Final Render Call)
+        // =======================================================================
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(
+          <React.StrictMode>
+            <MainApp />
+          </React.StrictMode>
+        );
+
+    </script>
 </body>
 </html>
