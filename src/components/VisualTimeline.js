@@ -2,16 +2,24 @@
 import React from 'react';
 import { srtTimeToMs } from '../utils/srtUtils';
 
-// All text is hardcoded in English
-function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuration, subtitleErrors }) {
+function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuration, subtitleErrors, currentTime }) {
     const containerRef = React.useRef(null);
+    const playheadRef = React.useRef(null);
+    
+    React.useEffect(() => {
+        if(playheadRef.current && totalDuration > 0){
+            const percentage = (currentTime / totalDuration) * 100;
+            playheadRef.current.style.left = `${percentage}%`;
+        }
+    }, [currentTime, totalDuration]);
+
 
     if (!subtitles || subtitles.length === 0) {
         return (
             <div className="my-6">
                 <h3 className="text-lg font-semibold mb-2 text-slate-700 dark:text-slate-300">Visual Timeline</h3>
                 <div className="w-full h-24 bg-slate-200 dark:bg-slate-700 rounded-md flex items-center justify-center text-slate-500 dark:text-slate-400">
-                    No subtitles to display in timeline.
+                    No subtitles to display.
                 </div>
             </div>
         );
@@ -20,20 +28,16 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
     const effectiveTotalDuration = React.useMemo(() => {
         if (totalDuration && totalDuration > 1000) return totalDuration;
         if (subtitles.length === 0) return 60000; 
-        
         const lastSub = subtitles[subtitles.length - 1];
         const maxEndTime = lastSub ? srtTimeToMs(lastSub.endTime) : 0;
-        
         return Math.max(maxEndTime + 5000, 60000); 
     }, [subtitles, totalDuration]);
-
 
     const handleBlockClick = (subId, subStartTime) => {
         onSelectSubtitle(subId);
         if (containerRef.current) {
             const percentage = (subStartTime / effectiveTotalDuration) * 100;
-            const containerWidth = containerRef.current.clientWidth;
-            const scrollPosition = (containerRef.current.scrollWidth * percentage / 100) - (containerWidth / 2);
+            const scrollPosition = (containerRef.current.scrollWidth * percentage / 100) - (containerRef.current.clientWidth / 2);
             containerRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
         }
     };
@@ -45,6 +49,9 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                 ref={containerRef}
                 className="w-full h-24 bg-slate-200 dark:bg-slate-700 rounded-md overflow-x-auto overflow-y-hidden relative whitespace-nowrap p-2 select-none"
             >
+                {/* Playhead */}
+                <div ref={playheadRef} className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"></div>
+
                 {subtitles.map((sub, index) => {
                     const startMs = srtTimeToMs(sub.startTime);
                     const endMs = srtTimeToMs(sub.endTime);
@@ -53,10 +60,9 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                     const leftPercentage = (startMs / effectiveTotalDuration) * 100;
                     const widthPercentage = (durationMs / effectiveTotalDuration) * 100;
                     
-                    const minWidthPx = 3; 
-                    const containerClientWidth = containerRef.current ? containerRef.current.clientWidth : 1000; 
+                    const minWidthPx = 3;
+                    const containerClientWidth = containerRef.current ? containerRef.current.clientWidth : 1000;
                     const minWidthAsPercentage = (minWidthPx / containerClientWidth) * 100;
-
                     const calculatedWidth = Math.max(widthPercentage, minWidthAsPercentage || 0.1);
                     const finalWidthPercentage = Math.min(calculatedWidth, 100 - leftPercentage);
 
@@ -67,7 +73,7 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
                         ? 'bg-sky-500 dark:bg-sky-400' 
                         : 'bg-sky-600/70 dark:bg-sky-500/70 hover:bg-sky-500 dark:hover:bg-sky-400';
                     if (hasError) {
-                        bgColorClass = '!bg-red-500/80 dark:!bg-red-400/80'; 
+                        bgColorClass = '!bg-red-500/80 dark:!bg-red-400/80';
                     }
 
                     return (
