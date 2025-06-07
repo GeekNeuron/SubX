@@ -1,3 +1,4 @@
+// src/components/WaveformDisplay.js
 import React from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 
@@ -5,11 +6,11 @@ function WaveformDisplay({ subtitle, isActive }) {
     const t = useTranslation();
     
     if (!isActive || !subtitle) {
-        return null; 
+        return null;
     }
 
     const waveformData = React.useMemo(() => {
-        return Array.from({ length: 60 }, () => Math.random() * 0.7 + 0.1); 
+        return Array.from({ length: 60 }, () => Math.random() * 0.7 + 0.1);
     }, [subtitle.id]); 
 
     return (
