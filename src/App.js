@@ -7,23 +7,19 @@ import SettingsModal from './components/SettingsModal';
 import HelpModal from './components/HelpModal';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
-// All text is hardcoded in English in the components.
 function AppContent() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [isHelpModalOpen, setIsHelpModalOpen] = React.useState(false);
-  
   const [notification, setNotification] = React.useState({ message: '', type: '' });
-  const [showNotification, setShowNotification] = React.useState(false);
+  const { language } = useLanguage();
 
   React.useEffect(() => {
     if (notification.message) {
-      setShowNotification(true);
       const timer = setTimeout(() => {
-        setShowNotification(false);
-        const clearMessageTimer = setTimeout(() => setNotification({ message: '', type: '' }), 300);
-        return () => clearTimeout(clearMessageTimer);
-      }, 2700);
+        setNotification({ message: '', type: '' });
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [notification]);
@@ -39,15 +35,13 @@ function AppContent() {
   }, []);
   
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans">
+    <div className={`flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans ${language === 'fa' ? 'font-vazir' : ''}`}>
       <Header 
         onSettingsClick={() => setIsSettingsModalOpen(true)} 
         onHelpClick={() => setIsHelpModalOpen(true)}
       />
       <main className="flex-grow">
-        <SubtitleEditor 
-            setGlobalNotification={setNotification} 
-        />
+        <SubtitleEditor setGlobalNotification={setNotification} />
       </main>
       <Footer />
       <SettingsModal 
@@ -59,8 +53,8 @@ function AppContent() {
         isOpen={isHelpModalOpen} 
         onClose={() => setIsHelpModalOpen(false)} 
       />
-      {showNotification && !notification.isLoading && (
-         <div className={`fixed top-20 right-4 p-4 rounded-md shadow-lg z-[150] transition-all duration-300 ${showNotification ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5 pointer-events-none'} ${notification.type === 'success' ? 'bg-green-500 text-white' : ''} ${notification.type === 'error' ? 'bg-red-500 text-white' : ''} ${notification.type === 'info' ? 'bg-sky-500 text-white' : ''} ${notification.type === 'warning' ? 'bg-yellow-500 text-black' : ''} `}>
+      {notification.message && !notification.isLoading && (
+         <div className={`fixed top-20 p-4 rounded-md shadow-lg z-[150] transition-all duration-300 ${notification.message ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-5 pointer-events-none'} ${language === 'fa' ? 'left-4' : 'right-4'} ${notification.type === 'success' ? 'bg-green-500 text-white' : ''} ${notification.type === 'error' ? 'bg-red-500 text-white' : ''} ${notification.type === 'info' ? 'bg-sky-500 text-white' : ''} ${notification.type === 'warning' ? 'bg-yellow-500 text-black' : ''} `}>
             {notification.message}
          </div>
        )}
@@ -71,9 +65,11 @@ function AppContent() {
 export default function MainApp() {
   return (
     <ThemeProvider>
-      <SettingsProvider>
-        <AppContent />
-      </SettingsProvider>
+      <LanguageProvider>
+        <SettingsProvider>
+          <AppContent />
+        </SettingsProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }
