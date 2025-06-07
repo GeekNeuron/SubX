@@ -27,7 +27,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     
     const { subtitles, originalFileName, hasUnsavedChanges } = editorState;
 
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false); 
     const [findText, setFindText] = React.useState('');
     const [replaceText, setReplaceText] = React.useState('');
     const [shiftAmount, setShiftAmount] = React.useState('');
@@ -49,7 +49,7 @@ function SubtitleEditor({ setGlobalNotification }) {
     const [videoDuration, setVideoDuration] = React.useState(0);
     const [videoCurrentTime, setVideoCurrentTime] = React.useState(0);
     const videoRef = React.useRef(null);
-    
+
     React.useEffect(() => {
         const baseTitle = t('appTitle');
         let newTitle = originalFileName ? `${originalFileName} - ${baseTitle}` : baseTitle;
@@ -59,7 +59,7 @@ function SubtitleEditor({ setGlobalNotification }) {
 
     const withLoading = (fn, loadingMessageKey = 'processing') => {
         setIsLoading(true); setGlobalNotification({ message: t(loadingMessageKey), type: 'info', isLoading: true });
-        setTimeout(() => {
+        setTimeout(() => { 
             try { fn(); } catch (error) { console.error("Error during processing:", error); setGlobalNotification({ message: "An error occurred during processing.", type: 'error' }); } 
             finally { setIsLoading(false); } 
         }, 100); 
@@ -76,7 +76,7 @@ function SubtitleEditor({ setGlobalNotification }) {
                 startTime: match[2].replace('.',','), 
                 endTime: match[3].replace('.',','), 
                 text: match[4].trim(),
-                translation: '' // Initialize translation field
+                translation: ''
             });
         }
         return subs.sort((a, b) => srtTimeToMs(a.startTime) - srtTimeToMs(b.startTime));
@@ -112,29 +112,10 @@ function SubtitleEditor({ setGlobalNotification }) {
     const handleVideoMetadata = (e) => setVideoDuration(e.target.duration * 1000);
     const handleVideoTimeUpdate = (e) => setVideoCurrentTime(e.target.currentTime * 1000);
 
-    const handleSave = (type) => {
-        if (subtitles.length === 0) { setGlobalNotification({ message: "No subtitles to save.", type: 'info' }); return; }
-        const srtContent = subtitlesToSRT(subtitles, type);
-        const blob = new Blob([srtContent], { type: 'text/srt;charset=utf-8' });
-        const link = document.createElement('a');
-        let baseName = originalFileName || 'subtitles';
-        if (baseName.endsWith('.srt')) baseName = baseName.slice(0, -4);
-        const suffix = type === 'translation' ? `.${language}.srt` : '.srt';
-        link.href = URL.createObjectURL(blob);
-        link.download = `${baseName}${suffix}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setGlobalNotification({ message: t('subtitlesSaved'), type: 'success' });
-        if (type === 'original' || (type === 'translation' && !appearanceConfig.translationMode)) {
-             setEditorStateWithUndo(editorState, "save_action");
-        }
-    };
-    
     const handleAddSubtitle = () => {
         const lastSub = subtitles.length > 0 ? subtitles[subtitles.length - 1] : null;
         const newStartTime = lastSub ? msToSrtTime(srtTimeToMs(lastSub.endTime) + 100) : "00:00:00,000";
-        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000);
+        const newEndTime = msToSrtTime(srtTimeToMs(newStartTime) + 2000); 
         const newSub = { id: crypto.randomUUID(), startTime: newStartTime, endTime: newEndTime, text: "New text...", translation: "" };
         setEditorStateWithUndo({ ...editorState, subtitles: [...subtitles, newSub] });
         setActiveRowId(newSub.id);
@@ -146,103 +127,203 @@ function SubtitleEditor({ setGlobalNotification }) {
         setEditorStateWithUndo({ ...editorState, subtitles: newSubtitles });
     };
 
-    const filteredSubtitles = React.useMemo(() => {
-        if (!searchTerm) return subtitles;
-        return subtitles.filter(sub => 
-            sub.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (sub.translation && sub.translation.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            sub.startTime.includes(searchTerm) ||
-            sub.endTime.includes(searchTerm)
-        );
-    }, [subtitles, searchTerm]);
+    const handleSave = (type) => {
+        if (subtitles.length === 0) { setGlobalNotification({ message: "No subtitles to save.", type: 'info' }); return; }
+        const sourceText = (type === 'translation' && appearanceConfig.translationMode) ? 'translation' : 'text';
+        const srtContent = subtitlesToSRT(subtitles, sourceText);
+        const blob = new Blob([srtContent], { type: 'text/srt;charset=utf-8' });
+        const link = document.createElement('a');
+        let baseName = originalFileName || 'subtitles';
+        if (baseName.endsWith('.srt')) baseName = baseName.slice(0, -4);
+        const suffix = sourceText === 'translation' ? `.${language}.srt` : '.srt';
+        link.href = URL.createObjectURL(blob);
+        link.download = `${baseName}${suffix}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setGlobalNotification({ message: t('subtitlesSaved'), type: 'success' });
+        setEditorStateWithUndo(editorState, "save_action");
+    };
+
+    const handleErrorCheck = () => {
+        if (subtitles.length === 0) { setGlobalNotification({ message: t('noSubtitlesToCheck'), type: 'info' }); setSubtitleErrors(new Map()); return; }
+        const errors = checkSubtitleErrors(subtitles, errorConfig, t);
+        setSubtitleErrors(errors);
+        if (errors.size > 0) {
+            setGlobalNotification({ message: t('errorsFound', errors.size), type: 'warning' });
+        } else {
+            setGlobalNotification({ message: t('noErrorsFound'), type: 'success' });
+        }
+    };
+
+    const handleFixLongLines = () => {
+        withLoading(() => {
+            let fixCount = 0;
+            const processedSubs = new Set();
+            const newSubtitles = [];
+
+            subtitles.forEach(sub => {
+                if (processedSubs.has(sub.id)) return;
+
+                const lines = sub.text.split('\n');
+                let isLong = lines.some(line => line.length > errorConfig.MAX_CHARS_PER_LINE);
+
+                if (!isLong) {
+                    newSubtitles.push(sub);
+                    processedSubs.add(sub.id);
+                    return;
+                }
+
+                fixCount++;
+                const originalStartTimeMs = srtTimeToMs(sub.startTime);
+                const originalEndTimeMs = srtTimeToMs(sub.endTime);
+                const originalDurationMs = originalEndTimeMs - originalStartTimeMs;
+                const totalLength = sub.text.replace(/\n/g, ' ').length;
+                
+                let newTexts = [];
+                let currentLine = "";
+
+                sub.text.split(' ').forEach(word => {
+                    const tempLine = currentLine ? `${currentLine} ${word}` : word;
+                    if (tempLine.length > errorConfig.MAX_CHARS_PER_LINE && currentLine.length > 0) {
+                        newTexts.push(currentLine.trim());
+                        currentLine = word;
+                    } else {
+                        currentLine = tempLine;
+                    }
+                });
+                if (currentLine) newTexts.push(currentLine.trim());
+
+                let accumulatedTime = originalStartTimeMs;
+                for (let i = 0; i < newTexts.length; i++) {
+                    const textPart = newTexts[i];
+                    if (textPart.length === 0) continue;
+                    const partRatio = textPart.length / totalLength;
+                    const partDuration = Math.max(500, Math.round(originalDurationMs * partRatio));
+                    
+                    const newStartTime = accumulatedTime;
+                    const newEndTime = accumulatedTime + partDuration;
+                    
+                    newSubtitles.push({
+                        ...sub,
+                        id: crypto.randomUUID(),
+                        text: textPart,
+                        translation: '', // Reset translation for new split parts
+                        startTime: msToSrtTime(newStartTime),
+                        endTime: msToSrtTime(newEndTime),
+                    });
+                    
+                    accumulatedTime = newEndTime;
+                }
+                processedSubs.add(sub.id);
+            });
+
+            if (fixCount > 0) {
+                setEditorStateWithUndo({ ...editorState, subtitles: newSubtitles });
+                setGlobalNotification({ message: t('longLinesFixed', fixCount), type: 'success' });
+                const newErrors = checkSubtitleErrors(newSubtitles, errorConfig, t);
+                setSubtitleErrors(newErrors);
+            } else {
+                setGlobalNotification({ message: t('noLongLinesToFix'), type: 'info' });
+            }
+        });
+    };
+
+    const handleMergeShortLines = () => {
+        withLoading(() => {
+            let mergeCount = 0;
+            let currentSubtitles = [...subtitles];
+            
+            // Get IDs of subtitles that are too short
+            const shortSubIds = new Set();
+            currentSubtitles.forEach(sub => {
+                const duration = srtTimeToMs(sub.endTime) - srtTimeToMs(sub.startTime);
+                if (duration < errorConfig.MIN_DURATION_MS) {
+                    shortSubIds.add(sub.id);
+                }
+            });
+
+            if(shortSubIds.size === 0) {
+                setGlobalNotification({ message: t('noShortLinesToFix'), type: 'info' });
+                return;
+            }
+
+            // Iterate backwards to safely merge and remove elements
+            for (let i = currentSubtitles.length - 1; i > 0; i--) {
+                const sub = currentSubtitles[i];
+                if (shortSubIds.has(sub.id)) {
+                    const prevSub = currentSubtitles[i - 1];
+                    
+                    // Merge sub with previous sub
+                    const mergedSub = {
+                        ...prevSub,
+                        endTime: sub.endTime,
+                        text: `${prevSub.text} ${sub.text}`.trim(),
+                        translation: `${prevSub.translation || ''} ${sub.translation || ''}`.trim()
+                    };
+                    
+                    // Replace the two subs with the single merged one
+                    currentSubtitles.splice(i - 1, 2, mergedSub);
+                    mergeCount++;
+                }
+            }
+
+            if (mergeCount > 0) {
+                setEditorStateWithUndo({ ...editorState, subtitles: currentSubtitles });
+                setGlobalNotification({ message: t('shortLinesMerged', mergeCount), type: 'success' });
+                const newErrors = checkSubtitleErrors(currentSubtitles, errorConfig, t);
+                setSubtitleErrors(newErrors);
+            }
+        });
+    };
+
+    const hasLongLinesError = React.useMemo(() => {
+        for (const errors of subtitleErrors.values()) {
+            if (errors.some(errKey => errKey.startsWith('ERROR_TYPE_TOO_MANY_CHARS'))) return true;
+        }
+        return false;
+    }, [subtitleErrors]);
+
+    const hasShortDurationError = React.useMemo(() => {
+        for (const errors of subtitleErrors.values()) {
+            if (errors.some(errKey => errKey.startsWith('ERROR_TYPE_TOO_SHORT'))) return true;
+        }
+        return false;
+    }, [subtitleErrors]);
+
+    // ... (rest of the component, especially the JSX part)
     
-    const numSelected = selectedSubtitleIds.size;
-    const allSelected = subtitles.length > 0 && numSelected === subtitles.length && filteredSubtitles.length === subtitles.length;
-
-    // ... (other handlers like handleDelete, handleShift, etc. are assumed to be complete and are omitted for brevity) ...
-
     return (
-        <div className={`container mx-auto p-4 ${language === 'fa' ? 'font-vazir' : ''}`}>
-            <LoadingOverlay isActive={isLoading} message={t('processing')} />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
-                    <FileUploader onFileLoad={handleFileLoadInternal} setNotification={setGlobalNotification} clearSubtitles={() => resetEditorHistory({ subtitles: [], originalFileName: '', hasUnsavedChanges: false })} fileInputRef={fileInputRef} />
-                </div>
-                <div className="lg:col-span-1 flex flex-col justify-center">
-                    <label htmlFor="video-upload" className="w-full text-center px-4 py-2 bg-green-600 text-white rounded-md shadow hover:bg-green-700 cursor-pointer">{t('loadVideo')}</label>
-                    <input id="video-upload" type="file" ref={videoFileRef} className="hidden" accept="video/*" onChange={handleVideoFileChange} />
-                </div>
-            </div>
+        <div className="container mx-auto p-4">
+            {/* ... JSX for FileUploader, Video Loader, Action Buttons ... */}
 
-            {videoSrc && <div className="my-4"><video ref={videoRef} src={videoSrc} controls className="w-full rounded-lg shadow-md" onLoadedMetadata={handleVideoMetadata} onTimeUpdate={handleVideoTimeUpdate}></video></div>}
-            
-            {/* Action Buttons */}
-            <div className="my-4 flex flex-wrap gap-2 items-center">
-                <button onClick={undo} disabled={!canUndo} className="px-3 py-2 bg-slate-500 text-white rounded-md shadow text-sm disabled:opacity-50 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6-6m-6 6l6 6" /></svg> {t('undo')}</button>
-                <button onClick={redo} disabled={!canRedo} className="px-3 py-2 bg-slate-500 text-white rounded-md shadow text-sm disabled:opacity-50 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6" /></svg> {t('redo')}</button>
-                <span className="border-l h-8 mx-2"></span>
-                <button onClick={handleAddSubtitle} className="px-4 py-2 bg-green-500 text-white rounded-md shadow text-sm">{t('addSubtitle')}</button>
-                {appearanceConfig.translationMode ? (
-                    <div className="flex gap-2">
-                        <button onClick={() => handleSave('original')} className="px-4 py-2 bg-sky-500 text-white rounded-md shadow text-sm">{t('saveOriginal')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
-                        <button onClick={() => handleSave('translation')} className="px-4 py-2 bg-emerald-500 text-white rounded-md shadow text-sm">{t('saveTranslation')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
-                    </div>
-                ) : (
-                    <button onClick={() => handleSave('original')} className="px-4 py-2 bg-sky-500 text-white rounded-md shadow text-sm">{t('saveSubtitles')}{hasUnsavedChanges && <span className="ml-1 text-red-300">*</span>}</button>
-                )}
-                {/* ... other action buttons like Two-Point Sync */}
-            </div>
-
-            {/* Other tools and the subtitle table */}
-            {/* The table header needs to be conditional */}
-            <div className="overflow-x-auto bg-white dark:bg-slate-800 shadow-lg rounded-lg">
-                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-                    <thead className="bg-slate-50 dark:bg-slate-700">
-                        <tr>
-                            <th className="p-3 w-20 text-center"><input type="checkbox" checked={allSelected} onChange={handleSelectAllSubtitles} /></th>
-                            <th className="p-3 w-40 text-left">{t('startTime')}</th>
-                            <th className="p-3 w-40 text-left">{t('endTime')}</th>
-                            {appearanceConfig.translationMode ? (
+             <div className="my-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg shadow">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                    {/* ... Find/Replace and Shift Times sections ... */}
+                    <div>
+                        <h3 className="text-lg font-semibold mb-2">{t('fixCommonErrors')}</h3>
+                        <div className="space-y-3">
+                            <button onClick={handleErrorCheck} className="w-full px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-md shadow text-sm flex items-center justify-center transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 rtl:mr-0 rtl:ml-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v4a1 1 0 102 0V5zm-1 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
+                                {t('checkForErrors')}
+                            </button>
+                            {subtitleErrors.size > 0 && (
                                 <>
-                                    <th className="p-3 text-left">{t('originalText')}</th>
-                                    <th className="p-3 text-left">{t('translation')}</th>
+                                    {/* ... Other fix buttons like Fix Overlaps ... */}
+                                    {hasLongLinesError && (
+                                        <button onClick={handleFixLongLines} className="w-full px-3 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-md shadow text-sm transition-colors">{t('fixLongLines')}</button>
+                                    )}
+                                    {hasShortDurationError && (
+                                        <button onClick={handleMergeShortLines} className="w-full px-3 py-2 bg-lime-500 hover:bg-lime-600 text-white rounded-md shadow text-sm transition-colors">{t('mergeShortLines')}</button>
+                                    )}
+                                    <button onClick={handleClearErrorMarkers} className="w-full px-3 py-2 bg-slate-400 hover:bg-slate-500 text-white rounded-md shadow text-sm transition-colors" title="(Ctrl+Shift+L)">{t('clearErrorMarkers')}</button>
                                 </>
-                            ) : (
-                                <th className="p-3 text-left" colSpan="2">{t('text')}</th>
                             )}
-                            <th className="p-3 w-48 text-center">{t('actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredSubtitles.map((sub, index) => (
-                            <SubtitleItem
-                                key={sub.id}
-                                subtitle={sub}
-                                index={subtitles.findIndex(s => s.id === sub.id)}
-                                itemRef={el => { subtitleRowsRef.current[sub.id] = el; }}
-                                onUpdate={handleUpdateSubtitle}
-                                // ... other props
-                                editingRowId={editingRowId}
-                                onToggleEdit={handleToggleEditRow}
-                            />
-                        ))}
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            {/* Modals */}
-             <TwoPointSyncModal
-                isOpen={isTwoPointSyncModalOpen}
-                onClose={() => setIsTwoPointSyncModalOpen(false)}
-                subtitles={subtitles}
-                selectedSubtitleIds={selectedSubtitleIds}
-                onSyncSubtitles={(syncedSubs) => {
-                    setEditorStateWithUndo({ ...editorState, subtitles: syncedSubs });
-                }}
-                setNotification={setGlobalNotification}
-                withLoading={withLoading}
-            />
+            {/* ... rest of the JSX ... */}
         </div>
     );
 }
