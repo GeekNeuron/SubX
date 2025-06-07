@@ -5,20 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SubX Offline</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; color: #333; text-align: center; padding: 20px; }
-    h1 { font-size: 1.8em; margin-bottom: 0.5em; color: #1e293b; }
-    p { font-size: 1.1em; margin-bottom: 1em; line-height: 1.6; }
-    .container { max-width: 600px; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    a { color: #0ea5e9; text-decoration: none; font-weight: bold; }
-    a:hover { text-decoration: underline; }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        height: 100vh; 
+        margin: 0; 
+        background-color: #f1f5f9; 
+        color: #334155; 
+        text-align: center; 
+        padding: 20px; 
+    }
+    .container { 
+        max-width: 600px; 
+        padding: 40px; 
+        background-color: #ffffff; 
+        border-radius: 12px; 
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    h1 { 
+        font-size: 2.25em; 
+        margin-bottom: 0.5em; 
+        color: #0f172a; 
+        font-weight: 700;
+    }
+    p { 
+        font-size: 1.1em; 
+        margin-bottom: 1.5em; 
+        line-height: 1.6; 
+    }
+    a { 
+        display: inline-block;
+        padding: 12px 24px;
+        background-color: #0ea5e9; 
+        color: white;
+        text-decoration: none; 
+        font-weight: bold; 
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+    a:hover { 
+        background-color: #0284c7; 
+    }
+    .icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>SubX is Offline</h1>
-    <p>It seems you're not connected to the internet or the server is unreachable.</p>
-    <p>The app might have limited functionality or may not load new data until you reconnect.</p>
-    <p><a href="/">Try to Reload</a></p>
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+    <h1>You Are Offline</h1>
+    <p>It seems you're not connected to the internet. Please check your connection and try again.</p>
+    <p><a href="/">Reload</a></p>
   </div>
 </body>
 </html>
