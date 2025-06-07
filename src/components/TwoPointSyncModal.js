@@ -1,14 +1,14 @@
 // src/components/TwoPointSyncModal.js
 import React from 'react';
 import { srtTimeToMs, msToSrtTime } from '../utils/srtUtils';
-import { useUndoRedo } from '../hooks/useUndoRedo'; // Assuming this is where editor state is managed
 
+// All text is hardcoded in English
 function TwoPointSyncModal({ 
     isOpen, 
     onClose, 
-    subtitles, // Full list of subtitles from SubtitleEditor
-    selectedSubtitleIds, // Set of selected subtitle IDs
-    setEditorState, // Function to update the main editor state (including subtitles)
+    subtitles, 
+    selectedSubtitleIds,
+    onSyncSubtitles, // Renamed prop for clarity
     setNotification,
     withLoading
 }) {
@@ -16,31 +16,27 @@ function TwoPointSyncModal({
     const [point1Actual, setPoint1Actual] = React.useState('');
     const [point2Srt, setPoint2Srt] = React.useState('');
     const [point2Actual, setPoint2Actual] = React.useState('');
-    const [applyTo, setApplyTo] = React.useState('all'); // 'all' or 'selected'
+    const [applyTo, setApplyTo] = React.useState('all'); 
 
-    // Try to prefill with selected subtitles if exactly two are selected
+    // Pre-fill with selected subtitles if exactly two are selected, or first/last
     React.useEffect(() => {
-        if (isOpen && selectedSubtitleIds.size === 2 && subtitles.length >= 2) {
-            const selectedArray = subtitles.filter(sub => selectedSubtitleIds.has(sub.id));
-            if (selectedArray.length === 2) {
-                // Ensure they are sorted by their original start time to avoid confusion
-                selectedArray.sort((a, b) => srtTimeToMs(a.startTime) - srtTimeToMs(b.startTime));
-                setPoint1Srt(selectedArray[0].startTime);
-                setPoint2Srt(selectedArray[1].startTime);
-                // Actual video times need to be manually entered by the user
-                setPoint1Actual('');
-                setPoint2Actual('');
+        if (isOpen) {
+            let p1Srt = '', p2Srt = '';
+            if (selectedSubtitleIds && selectedSubtitleIds.size === 2 && subtitles.length >= 2) {
+                const selectedArray = subtitles.filter(sub => selectedSubtitleIds.has(sub.id));
+                if (selectedArray.length === 2) {
+                    selectedArray.sort((a, b) => srtTimeToMs(a.startTime) - srtTimeToMs(b.startTime));
+                    p1Srt = selectedArray[0].startTime;
+                    p2Srt = selectedArray[1].startTime;
+                }
+            } else if (subtitles.length >= 2) {
+                p1Srt = subtitles[0].startTime;
+                p2Srt = subtitles[subtitles.length - 1].startTime;
             }
-        } else if (isOpen && subtitles.length >= 2) {
-            // Prefill with first and last if no specific selection or invalid selection
-            setPoint1Srt(subtitles[0].startTime);
-            setPoint2Srt(subtitles[subtitles.length - 1].startTime);
-            setPoint1Actual('');
+            setPoint1Srt(p1Srt);
+            setPoint1Actual(''); // User must input actual video times
+            setPoint2Srt(p2Srt);
             setPoint2Actual('');
-        } else {
-            // Reset fields if not enough subtitles or modal is closed
-            setPoint1Srt(''); setPoint1Actual('');
-            setPoint2Srt(''); setPoint2Actual('');
         }
     }, [isOpen, selectedSubtitleIds, subtitles]);
 
@@ -51,30 +47,22 @@ function TwoPointSyncModal({
         const s2 = srtTimeToMs(point2Srt);
         const v2 = srtTimeToMs(point2Actual);
 
-        if (isNaN(s1) || isNaN(v1) || isNaN(s2) || isNaN(v2) || s1 === s2 || v1 === v2) {
-            setNotification({ message: "Error: Invalid time format or points are identical/collinear, preventing accurate calculation.", type: 'error' });
+        if (isNaN(s1) || isNaN(v1) || isNaN(s2) || isNaN(v2) || s1 === s2 || v1 === v2 || (s2 - s1 === 0)) {
+            setNotification({ message: "Error: Invalid time format, points are identical/collinear, or division by zero would occur.", type: 'error' });
             return;
         }
 
-        const subsToUpdate = applyTo === 'all' ? subtitles : subtitles.filter(sub => selectedSubtitleIds.has(sub.id));
-        if (subsToUpdate.length === 0) {
+        const subsToProcess = applyTo === 'all' ? subtitles : subtitles.filter(sub => selectedSubtitleIds.has(sub.id));
+        if (subsToProcess.length === 0) {
             setNotification({ message: "No subtitles to sync. Select subtitles or choose 'All Subtitles'.", type: 'warning' });
             return;
         }
-
-
-        withLoading(() => {
-            // Linear transformation: newTime = scale * oldTime + offset
-            // v = a*s + b
-            // v1 = a*s1 + b
-            // v2 = a*s2 + b
-            // v2 - v1 = a * (s2 - s1) => a = (v2 - v1) / (s2 - s1)
-            // b = v1 - a*s1
-            
+        
+        const syncLogic = () => {
             const scale = (v2 - v1) / (s2 - s1);
             const offset = v1 - scale * s1;
 
-            const newSubtitles = subtitles.map(sub => {
+            const newSyncedSubtitles = subtitles.map(sub => {
                 if (applyTo === 'all' || selectedSubtitleIds.has(sub.id)) {
                     const oldStartTimeMs = srtTimeToMs(sub.startTime);
                     const oldEndTimeMs = srtTimeToMs(sub.endTime);
@@ -82,10 +70,9 @@ function TwoPointSyncModal({
                     const newStartTimeMs = Math.round(scale * oldStartTimeMs + offset);
                     const newEndTimeMs = Math.round(scale * oldEndTimeMs + offset);
                     
-                    // Ensure end time is after start time, and duration is not negative
                     if (newEndTimeMs < newStartTimeMs) {
-                        console.warn(`Subtitle ${sub.id} would have negative duration. Skipping adjustment.`);
-                        return sub; // Keep original if new times are invalid
+                        console.warn(`Subtitle ${sub.id} would have negative or zero duration after sync (New Start: ${newStartTimeMs}, New End: ${newEndTimeMs}). Keeping original times.`);
+                        return sub; 
                     }
 
                     return {
@@ -96,11 +83,13 @@ function TwoPointSyncModal({
                 }
                 return sub;
             });
-
-            setEditorState(prev => ({ ...prev, subtitles: newSubtitles, hasUnsavedChanges: true }), "edit");
-            setNotification({ message: `Successfully synchronized ${subsToUpdate.length} subtitle(s).`, type: 'success' });
+            
+            onSyncSubtitles(newSyncedSubtitles);
+            setNotification({ message: `Successfully synchronized ${subsToProcess.length} subtitle(s).`, type: 'success' });
             onClose();
-        }, "Processing synchronization...");
+        };
+        
+        withLoading(syncLogic, "Synchronizing subtitles...");
     };
 
     if (!isOpen) return null;
@@ -146,12 +135,12 @@ function TwoPointSyncModal({
                         <label htmlFor="applyTo" className={labelClass}>Apply to:</label>
                         <select id="applyTo" value={applyTo} onChange={e => setApplyTo(e.target.value)} className={inputClass}>
                             <option value="all">All Subtitles</option>
-                            <option value="selected" disabled={selectedSubtitleIds.size === 0}>Selected Subtitles ({selectedSubtitleIds.size})</option>
+                            <option value="selected" disabled={!selectedSubtitleIds || selectedSubtitleIds.size === 0}>Selected Subtitles ({selectedSubtitleIds ? selectedSubtitleIds.size : 0})</option>
                         </select>
                     </div>
                 </div>
 
-                <div className="mt-6 flex justify-end space-x-3 rtl:space-x-reverse">
+                <div className="mt-6 flex justify-end space-x-3">
                     <button 
                         type="button"
                         onClick={onClose}
