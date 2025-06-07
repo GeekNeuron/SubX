@@ -1,4 +1,3 @@
-// src/contexts/ThemeContext.js
 import React from 'react';
 
 const ThemeContext = React.createContext();
@@ -6,8 +5,7 @@ const ThemeContext = React.createContext();
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = React.useState(() => {
         const savedTheme = localStorage.getItem('subx-theme');
-        // Default to 'light' if no theme is saved or if 'system' was previously saved (which we don't handle explicitly here)
-        return savedTheme === 'dark' ? 'dark' : 'light'; 
+        return savedTheme || 'light';
     });
 
     React.useEffect(() => {
