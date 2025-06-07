@@ -1,51 +1,53 @@
 // src/hooks/useUndoRedo.js
 import React from 'react';
 
+// This custom hook manages the state for undo/redo functionality.
+// It tracks past, present, and future states of the subtitle data.
 export function useUndoRedo(initialState) {
-    // The state includes the core data (subtitles, originalFileName) 
-    // and a flag for unsaved changes.
     const [state, setState] = React.useState({
         past: [],
-        present: { ...initialState, hasUnsavedChanges: false }, // Initialize with no unsaved changes
+        present: initialState,
         future: []
     });
 
     const canUndo = state.past.length > 0;
     const canRedo = state.future.length > 0;
 
-    // updatePresent is called when a new state is set by an action.
-    // actionType helps determine if 'hasUnsavedChanges' should be set.
+    // This function is the main way to update the state and push to the undo history.
     const updatePresent = React.useCallback((newPresentData, actionType = "standard_edit") => {
         setState(currentState => {
-            // Determine if the core data (subtitles, filename) actually changed.
-            const subtitlesChanged = JSON.stringify(newPresentData.subtitles) !== JSON.stringify(currentState.present.subtitles);
-            const fileNameChanged = newPresentData.originalFileName !== currentState.present.originalFileName;
-            const actualDataChanged = subtitlesChanged || fileNameChanged;
-
+            const dataIsSame = JSON.stringify(newPresentData.subtitles) === JSON.stringify(currentState.present.subtitles) &&
+                               newPresentData.originalFileName === currentState.present.originalFileName;
+            
+            // Determine the new "hasUnsavedChanges" status based on the action type.
             let newHasUnsavedChanges;
-            if (actionType === "save_action" || actionType === "load_or_reset_action") {
-                newHasUnsavedChanges = false; // Saving or loading/resetting clears unsaved status
-            } else { // Any other action implies a potential change
-                newHasUnsavedChanges = actualDataChanged || currentState.present.hasUnsavedChanges;
+            if (actionType === "save_action") {
+                newHasUnsavedChanges = false; // Saving clears the unsaved status.
+            } else if (actionType === "load_or_reset_action") {
+                newHasUnsavedChanges = false; // Loading a new file or clearing all resets the status.
+            } else { // Any other action (edit, add, delete, etc.) marks the state as having unsaved changes.
+                newHasUnsavedChanges = true;
             }
             
-            // If no actual data changed AND the unsaved status is also not changing, don't push to history.
-            // This prevents pushing to history just for a flag change if data is identical.
-            if (!actualDataChanged && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) {
-                 return { ...currentState, present: { ...currentState.present, hasUnsavedChanges: newHasUnsavedChanges }};
+            // If the actual data hasn't changed and the unsaved status is already correct, do nothing.
+            // This prevents adding duplicate states to the history.
+            if (dataIsSame && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) {
+                 return currentState;
             }
             
             const newPast = [...currentState.past, currentState.present];
-            const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); // Limit history size
+            // Limit the history size to prevent potential memory issues with very large files or many edits.
+            const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); 
 
             return {
                 past: limitedPast,
                 present: { ...newPresentData, hasUnsavedChanges: newHasUnsavedChanges },
-                future: [] // Clear future on new state update (standard undo/redo behavior)
+                future: [] // Any new action clears the "redo" history.
             };
         });
     }, []);
 
+    // Moves the current state to the future and the last past state to the present.
     const undo = React.useCallback(() => {
         if (!canUndo) return;
         setState(currentState => {
@@ -56,6 +58,7 @@ export function useUndoRedo(initialState) {
         });
     }, [canUndo]);
 
+    // Moves the first future state to the present and the current state to the past.
     const redo = React.useCallback(() => {
         if (!canRedo) return;
         setState(currentState => {
@@ -66,11 +69,11 @@ export function useUndoRedo(initialState) {
         });
     }, [canRedo]);
 
-    // Resets the state to a new initial state, typically after loading a new file or clearing all.
+    // Completely resets the state history, used when loading a new file or clearing all subtitles.
     const resetState = React.useCallback((newInitialState) => {
         setState({
             past: [],
-            present: { ...newInitialState, hasUnsavedChanges: false }, // Explicitly set unsaved to false
+            present: { ...newInitialState, hasUnsavedChanges: false }, // Explicitly set unsaved to false.
             future: []
         });
     }, []);
