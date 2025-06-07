@@ -1,20 +1,31 @@
-import React from 'react';
-import { srtTimeToMs } from '../utils/srtUtils';
-import { useTranslation } from '../contexts/LanguageContext';
+import React, { useRef, useMemo, useEffect } from 'react';
+import { srtTimeToMs } from '../utils/srtUtils.js';
+import { useTranslation } from '../contexts/LanguageContext.js';
 
 function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuration, subtitleErrors, currentTime }) {
     const t = useTranslation();
-    const containerRef = React.useRef(null);
-    const playheadRef = React.useRef(null);
+    const containerRef = useRef(null);
+    const playheadRef = useRef(null);
     
-    React.useEffect(() => {
+    // HOOK MOVED HERE: The hook is now called at the top level, before any conditional returns.
+    const effectiveTotalDuration = useMemo(() => {
+        if (!subtitles || subtitles.length === 0) return 60000; // Default 1 minute if no subtitles
+        if (totalDuration && totalDuration > 1000) return totalDuration;
+        
+        const lastSub = subtitles[subtitles.length - 1];
+        const maxEndTime = lastSub ? srtTimeToMs(lastSub.endTime) : 0;
+        
+        return Math.max(maxEndTime + 5000, 60000); // Add 5s buffer or default to 1min, whichever is greater
+    }, [subtitles, totalDuration]);
+
+    useEffect(() => {
         if(playheadRef.current && totalDuration > 0 && currentTime >= 0){
-            const percentage = (currentTime / totalDuration) * 100;
+            const percentage = (currentTime / effectiveTotalDuration) * 100;
             playheadRef.current.style.left = `${percentage}%`;
         }
-    }, [currentTime, totalDuration]);
+    }, [currentTime, totalDuration, effectiveTotalDuration]);
 
-
+    // CONDITIONAL RETURN IS NOW AFTER THE HOOK
     if (!subtitles || subtitles.length === 0) {
         return (
             <div className="my-6">
@@ -25,15 +36,6 @@ function VisualTimeline({ subtitles, onSelectSubtitle, activeRowId, totalDuratio
             </div>
         );
     }
-
-    const effectiveTotalDuration = React.useMemo(() => {
-        if (totalDuration && totalDuration > 1000) return totalDuration;
-        if (subtitles.length === 0) return 60000;
-        const lastSub = subtitles[subtitles.length - 1];
-        const maxEndTime = lastSub ? srtTimeToMs(lastSub.endTime) : 0;
-        return Math.max(maxEndTime + 5000, 60000);
-    }, [subtitles, totalDuration]);
-
 
     const handleBlockClick = (subId, subStartTime) => {
         onSelectSubtitle(subId);
