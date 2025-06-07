@@ -1,17 +1,20 @@
-// src/components/WaveformDisplay.js
-import React from 'react';
-import { useTranslation } from '../contexts/LanguageContext';
+import React, { useMemo } from 'react';
+import { useTranslation } from '../contexts/LanguageContext.js';
 
 function WaveformDisplay({ subtitle, isActive }) {
     const t = useTranslation();
     
-    if (!isActive || !subtitle) {
-        return null;
-    }
-
-    const waveformData = React.useMemo(() => {
+    // HOOK MOVED HERE: The hook is now called at the top level, before any conditional returns.
+    const waveformData = useMemo(() => {
+        // Only generate data if there's a subtitle, otherwise return an empty array
+        if (!subtitle) return [];
         return Array.from({ length: 60 }, () => Math.random() * 0.7 + 0.1);
-    }, [subtitle.id]); 
+    }, [subtitle]); // Dependency is now on the whole subtitle object
+
+    // CONDITIONAL RETURN IS NOW AFTER THE HOOK
+    if (!isActive || !subtitle) {
+        return null; 
+    }
 
     return (
         <div className="my-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg shadow">
