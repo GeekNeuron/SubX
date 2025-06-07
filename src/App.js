@@ -8,7 +8,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext';
 
-// This component handles the app update notification UI.
 const UpdateNotification = ({ registration }) => {
     const t = useTranslation();
     const [show, setShow] = React.useState(true);
