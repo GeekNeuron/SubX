@@ -1,19 +1,15 @@
-// src/components/WaveformDisplay.js
 import React from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
 
-// Displays a conceptual waveform for the active subtitle
 function WaveformDisplay({ subtitle, isActive }) {
     const t = useTranslation();
     
     if (!isActive || !subtitle) {
-        return null; // Don't render if not active or no subtitle
+        return null; 
     }
 
-    // Generate a simple conceptual waveform: an array of random heights
-    // This should re-generate if the subtitle ID changes, indicating a new subtitle is active
     const waveformData = React.useMemo(() => {
-        return Array.from({ length: 60 }, () => Math.random() * 0.7 + 0.1); // Values between 0.1 and 0.8
+        return Array.from({ length: 60 }, () => Math.random() * 0.7 + 0.1); 
     }, [subtitle.id]); 
 
     return (
@@ -22,7 +18,6 @@ function WaveformDisplay({ subtitle, isActive }) {
                 {t('waveformDisplay')}: <span className="font-mono text-sky-600 dark:text-sky-400">{subtitle.startTime} - {subtitle.endTime}</span>
             </h4>
             <div className="w-full h-16 bg-slate-200 dark:bg-slate-700 rounded flex items-end justify-start overflow-hidden px-0.5 space-x-px">
-                {/* Render bars based on waveformData */}
                 {waveformData.map((height, index) => (
                     <div
                         key={index}
