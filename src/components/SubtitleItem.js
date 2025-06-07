@@ -1,4 +1,3 @@
-// src/components/SubtitleItem.js
 import React from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useTranslation, useLanguage } from '../contexts/LanguageContext';
@@ -39,7 +38,9 @@ function SubtitleItem({
     
     const textareaRef = React.useRef(null);
     const translationTextareaRef = React.useRef(null);
+    const [jumpHighlight, setJumpHighlight] = React.useState(false);
 
+    // Effect to synchronize internal editing state with external trigger
     React.useEffect(() => {
         if (editingRowId === subtitle.id && !isEditing) {
             setIsEditing(true);
@@ -48,6 +49,7 @@ function SubtitleItem({
         }
     }, [editingRowId, subtitle.id, isEditing]);
 
+    // Effect to update local state when subtitle prop changes or when entering edit mode
     React.useEffect(() => {
         setEditText(subtitle.text);
         setEditTranslation(subtitle.translation || '');
@@ -70,7 +72,7 @@ function SubtitleItem({
             translation: editTranslation
         });
         setIsEditing(false);
-        onToggleEdit(subtitle.id, false); 
+        onToggleEdit(null, false); 
     };
 
     const handleCancelEdit = () => {
@@ -79,7 +81,7 @@ function SubtitleItem({
         setEditStart(subtitle.startTime);
         setEditEnd(subtitle.endTime);
         setIsEditing(false);
-        onToggleEdit(subtitle.id, false);
+        onToggleEdit(null, false);
     };
     
     const handleTextareaKeyDown = (e) => {
@@ -91,17 +93,35 @@ function SubtitleItem({
 
     const toggleSelfEdit = () => {
         const newEditingState = !isEditing;
-        setIsEditing(newEditingState);
         onToggleEdit(subtitle.id, newEditingState); 
     };
     
+    // Effect for temporarily highlighting the row on jump
+    React.useEffect(() => {
+        if (isActiveRow && itemRef && itemRef.current) { 
+            setJumpHighlight(true);
+            const timer = setTimeout(() => setJumpHighlight(false), 1200); 
+            return () => clearTimeout(timer);
+        }
+    }, [isActiveRow, itemRef]);
+
     const hasErrors = errors && errors.length > 0;
     
     let rowClass = `bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors`;
-    if (isActiveRow) { rowClass += ' ring-2 ring-sky-500 dark:ring-sky-400 ring-offset-1 dark:ring-offset-slate-800'; }
-    if (isBeingDragged) { rowClass = `opacity-50 bg-sky-100 dark:bg-sky-800`; } 
-    else if (isSelected && !isActiveRow) { rowClass = `bg-sky-100 dark:bg-sky-700/50 hover:bg-sky-200 dark:hover:bg-sky-600/50 transition-colors`; } 
-    else if (hasErrors && !isActiveRow && !isSelected) { rowClass = `bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors`; }
+    if (jumpHighlight) {
+        rowClass += ' animate-flash'; 
+    } else if (isActiveRow) {
+        rowClass += ' ring-2 ring-sky-500 dark:ring-sky-400 ring-offset-1 dark:ring-offset-slate-800';
+    }
+    
+    if (isBeingDragged) {
+        rowClass = `opacity-50 bg-sky-100 dark:bg-sky-800`;
+    } else if (isSelected && !isActiveRow) { 
+        rowClass = `bg-sky-100 dark:bg-sky-700/50 hover:bg-sky-200 dark:hover:bg-sky-600/50 transition-colors`;
+    } else if (hasErrors && !isActiveRow && !isSelected) { 
+        rowClass = `bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-800/60 transition-colors`;
+    }
+
     if (!isBeingDragged && dragOverPosition === 'before') rowClass += ' border-t-2 border-dashed border-sky-500';
     if (!isBeingDragged && dragOverPosition === 'after') rowClass += ' border-b-2 border-dashed border-sky-500';
     
@@ -112,8 +132,13 @@ function SubtitleItem({
         try {
             const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const parts = text.split(new RegExp(`(${escapedHighlight})`, 'gi'));
-            return parts.map((part, i) => part.toLowerCase() === highlight.toLowerCase() ? <mark key={i} className="bg-yellow-300 dark:bg-yellow-500 px-0.5 rounded">{part}</mark> : part );
-        } catch (e) { return text; }
+            return parts.map((part, i) => 
+                part.toLowerCase() === highlight.toLowerCase() ? <mark key={i} className="bg-yellow-300 dark:bg-yellow-500 px-0.5 rounded">{part}</mark> : part
+            );
+        } catch (e) {
+            console.error("Error creating RegExp for highlighting:", e);
+            return text; 
+        }
     };
 
     if (isEditing) {
@@ -130,9 +155,10 @@ function SubtitleItem({
                     <>
                         <td className="p-2 border-b border-slate-200 dark:border-slate-600 align-top">
                             <textarea 
-                                ref={textareaRef} value={editText} onChange={e => setEditText(e.target.value)} onKeyDown={handleTextareaKeyDown} rows="3" spellCheck={appearanceConfig.spellCheck}
-                                className={`w-full p-2 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-500 ${fontClass}`}
-                                readOnly // Original text is read-only in translation mode
+                                value={editText} 
+                                rows="3" 
+                                className={`w-full p-2 bg-slate-200 dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-500 text-slate-500 dark:text-slate-400 ${fontClass}`}
+                                readOnly 
                             ></textarea>
                         </td>
                         <td className="p-2 border-b border-slate-200 dark:border-slate-600 align-top">
