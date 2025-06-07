@@ -11,6 +11,12 @@ function HelpModal({ isOpen, onClose }) {
     const helpItemClass = "mb-2";
     const helpKeyClass = "font-semibold text-sky-600 dark:text-sky-400";
 
+    const getHelpText = (key) => {
+        const text = t(key);
+        // This splits "Key: Value" into "Value" to avoid repeating the key
+        return text.split(':').slice(1).join(':').trim();
+    }
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
             <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
@@ -23,10 +29,25 @@ function HelpModal({ isOpen, onClose }) {
                 <div className={`text-sm text-slate-700 dark:text-slate-300 space-y-3 ${language === 'fa' ? 'font-vazir' : ''}`}>
                     <p>{t('helpIntro')}</p>
                     <ul className={`list-disc list-inside space-y-1 ${language === 'fa' ? 'pr-4' : 'pl-4'}`}>
-                        {/* ... (previous help items) ... */}
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{'Performance'.split(':')[0]}:</strong> {t('helpPerformance').split(':').slice(1).join(':').trim()}</li>
-                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpVideoPlayer').split(':')[0]}:</strong> {t('helpVideoPlayer').split(':').slice(1).join(':').trim()}</li>
-                        {/* ... (other help items) ... */}
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpFileUpload').split(':')[0]}:</strong> {getHelpText('helpFileUpload')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpVideoPlayer').split(':')[0]}:</strong> {getHelpText('helpVideoPlayer')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpEditing').split(':')[0]}:</strong> {getHelpText('helpEditing')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpActions').split(':')[0]}:</strong> {getHelpText('helpActions')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpBulkActions').split(':')[0]}:</strong> {getHelpText('helpBulkActions')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpFindReplace').split(':')[0]}:</strong> {getHelpText('helpFindReplace')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpShiftTimes').split(':')[0]}:</strong> {getHelpText('helpShiftTimes')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpTwoPointSync').split(':')[0]}:</strong> {getHelpText('helpTwoPointSync')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpErrorChecking').split(':')[0]}:</strong> {getHelpText('helpErrorChecking')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpUndoRedo').split(':')[0]}:</strong> {getHelpText('helpUndoRedo')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpSaving').split(':')[0]}:</strong> {getHelpText('helpSaving')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('translationMode').split(':')[0]}:</strong> {getHelpText('helpTranslationMode')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('helpSettings').split(':')[0]}:</strong> {getHelpText('helpSettings')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{'Performance'.split(':')[0]}:</strong> {getHelpText('helpPerformance')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{'Offline & PWA'.split(':')[0]}:</strong> {getHelpText('helpOffline')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('jumpToLine').split(':')[0]}:</strong> {getHelpText('helpJumpToLine')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{'Keyboard Navigation'.split(':')[0]}:</strong> {getHelpText('helpKeyboardNav')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('visualTimeline').split(':')[0]}:</strong> {getHelpText('helpTimeline')}</li>
+                        <li className={helpItemClass}><strong className={helpKeyClass}>{t('waveformDisplay').split(':')[0]}:</strong> {getHelpText('helpWaveform')}</li>
                     </ul>
                 </div>
                 <div className="mt-6 text-right">
