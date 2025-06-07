@@ -1,4 +1,3 @@
-// src/hooks/useUndoRedo.js
 import React from 'react';
 
 // This custom hook manages the state for undo/redo functionality.
@@ -14,27 +13,29 @@ export function useUndoRedo(initialState) {
     const canRedo = state.future.length > 0;
 
     // This function is the main way to update the state and push to the undo history.
+    // actionType helps determine if 'hasUnsavedChanges' should be set.
     const updatePresent = React.useCallback((newPresentData, actionType = "standard_edit") => {
         setState(currentState => {
+            // Check if only hasUnsavedChanges flag is different, without actual data change
             const dataIsSame = JSON.stringify(newPresentData.subtitles) === JSON.stringify(currentState.present.subtitles) &&
                                newPresentData.originalFileName === currentState.present.originalFileName;
-            
-            // Determine the new "hasUnsavedChanges" status based on the action type.
+
             let newHasUnsavedChanges;
             if (actionType === "save_action") {
                 newHasUnsavedChanges = false; // Saving clears the unsaved status.
             } else if (actionType === "load_or_reset_action") {
                 newHasUnsavedChanges = false; // Loading a new file or clearing all resets the status.
             } else { // Any other action (edit, add, delete, etc.) marks the state as having unsaved changes.
-                newHasUnsavedChanges = true;
+                // It becomes true if either the data actually changed OR if it was already true.
+                newHasUnsavedChanges = !dataIsSame || currentState.present.hasUnsavedChanges;
             }
             
-            // If the actual data hasn't changed and the unsaved status is already correct, do nothing.
-            // This prevents adding duplicate states to the history.
+            // If no actual data changed and the unsaved status is also not changing, do nothing.
             if (dataIsSame && newHasUnsavedChanges === currentState.present.hasUnsavedChanges) {
                  return currentState;
             }
             
+            // Push the current state to the past for undo history
             const newPast = [...currentState.past, currentState.present];
             // Limit the history size to prevent potential memory issues with very large files or many edits.
             const limitedPast = newPast.slice(Math.max(0, newPast.length - 50)); 
