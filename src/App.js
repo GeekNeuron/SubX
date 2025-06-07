@@ -1,12 +1,12 @@
 import React from 'react';
-import Header from './components/Header.js';
-import SubtitleEditor from './components/SubtitleEditor.js';
-import Footer from './components/Footer.js';
-import SettingsModal from './components/SettingsModal.js';
-import HelpModal from './components/HelpModal.js';
-import { ThemeProvider } from './contexts/ThemeContext.js';
-import { SettingsProvider } from './contexts/SettingsContext.js';
-import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext.js';
+import Header from './components/Header';
+import SubtitleEditor from './components/SubtitleEditor';
+import Footer from './components/Footer';
+import SettingsModal from './components/SettingsModal';
+import HelpModal from './components/HelpModal';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { SettingsProvider } from './contexts/SettingsContext';
+import { LanguageProvider, useLanguage, useTranslation } from './contexts/LanguageContext';
 
 const UpdateNotification = ({ registration }) => {
     const t = useTranslation();
@@ -78,7 +78,7 @@ function AppContent() {
   }, []);
   
   return (
-    <div className={`flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 font-sans ${language === 'fa' ? 'font-vazir' : ''}`}>
+    <div className={`flex flex-col min-h-screen text-slate-900 dark:text-slate-100 ${language === 'fa' ? 'font-vazir' : ''}`}>
       <Header 
         onSettingsClick={() => setIsSettingsModalOpen(true)} 
         onHelpClick={() => setIsHelpModalOpen(true)}
